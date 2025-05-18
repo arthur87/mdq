@@ -23,7 +23,8 @@ module Mdq
     end
 
     desc 'list', 'Show mobile devices'
-    method_option :query, desc: 'Query', aliases: '-q'
+    method_option :query, desc: 'SQL to filter devices', aliases: '-q'
+    method_option :cap, desc: 'Directory to save screenshots to'
     def list
       Mdq::List.new(options)
     end

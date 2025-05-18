@@ -2,6 +2,7 @@
 
 require 'mdq'
 require 'active_record'
+require 'fileutils'
 
 # Mdq
 module Mdq
@@ -9,6 +10,7 @@ module Mdq
   class DDB
     def initializ; end
 
+    # 接続中のデバイスを取得する
     def get(sql)
       ActiveRecord::Schema.verbose = false
       InitialSchema.migrate(:up)
@@ -28,6 +30,7 @@ module Mdq
       end
     end
 
+    # 指定したソフトウェアのインストール状況を表示する
     def show_version(name, command)
       output, = Open3.capture3(command)
       puts "# #{name} installed."
@@ -36,10 +39,18 @@ module Mdq
       puts "# #{name} is not installed."
     end
 
+    # Androidデバイスのスクリーンショットを撮る
+    def android_screencap(output, udid)
+      FileUtils.mkdir_p(output)
+      file = "/sdcard/#{udid}.png"
+      adb_command("shell screencap -p #{file}", udid)
+      adb_command("pull #{file} #{output}", udid)
+    end
+
     private
 
+    # Androidデバイス一覧を取得する
     def android_discover
-      # Androidデバイス一覧を取得する
       output, = adb_command('devices -l')
       return if output.nil?
 
@@ -102,6 +113,7 @@ module Mdq
       end
     end
 
+    # ADBコマンド
     def adb_command(arg, udid = nil)
       command = if udid.nil?
                   "adb #{arg}"
@@ -117,6 +129,7 @@ module Mdq
       end
     end
 
+    # Appleデバイス一覧を取得する
     def apple_discover
       file = [Dir.home, '.mdq.json'].join(File::Separator)
 
