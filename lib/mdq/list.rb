@@ -8,8 +8,9 @@ module Mdq
   class List
     def initialize(options)
       ddb = Mdq::DDB.new
+      devices = ddb.get(options['query'])
 
-      puts JSON.pretty_generate(ddb.get(options['q']).as_json)
+      puts JSON.pretty_generate(devices.as_json)
     end
   end
 end
