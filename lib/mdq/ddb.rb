@@ -35,19 +35,19 @@ module Mdq
       output, = adb_command('devices -l')
       return if output.nil?
 
-      output.split("\n").each_with_index do |line, index|
+      output.split("\n").each_with_index do |line, index| # rubocop:disable Metrics/BlockLength
         next if index.zero?
 
         columns = line.split
 
-        serial_number = columns[0]
+        udid = columns[0]
         authorized = line.index('unauthorized').nil?
 
         if authorized
-          model, = adb_command('shell getprop ro.product.model', serial_number)
-          build_version, = adb_command('shell getprop ro.build.version.release', serial_number)
-          build_id, = adb_command('shell getprop ro.build.id', serial_number)
-          name, = adb_command('shell settings get global device_name', serial_number)
+          model, = adb_command('shell getprop ro.product.model', udid)
+          build_version, = adb_command('shell getprop ro.build.version.release', udid)
+          build_id, = adb_command('shell getprop ro.build.id', udid)
+          name, = adb_command('shell settings get global device_name', udid)
 
           model = model.strip
           build_version = build_version.strip
@@ -57,13 +57,13 @@ module Mdq
           free_capacity = 0
 
           # バッテリー
-          lines1, = adb_command('shell dumpsys battery', serial_number)
+          lines1, = adb_command('shell dumpsys battery', udid)
           if (match = lines1.match(/level: (\d*)/))
             battery_level = match[1].to_i
           end
 
           # ストレージ
-          lines2, = adb_command('shell df', serial_number)
+          lines2, = adb_command('shell df', udid)
           lines2.split("\n").each_with_index do |line2, index2|
             next if index2.zero?
 
@@ -75,7 +75,8 @@ module Mdq
           end
 
           Device.create({
-                          serial_number: serial_number,
+                          udid: udid,
+                          serial_number: udid,
                           name: name,
                           authorized: true,
                           model: model,
@@ -88,7 +89,8 @@ module Mdq
                         })
         else
           Device.create({
-                          serial_number: serial_number,
+                          udid: udid,
+                          serial_number: udid,
                           authorized: false,
                           platform: 'Android'
                         })
@@ -96,11 +98,11 @@ module Mdq
       end
     end
 
-    def adb_command(arg, serial_number = nil)
-      command = if serial_number.nil?
+    def adb_command(arg, udid = nil)
+      command = if udid.nil?
                   "adb #{arg}"
                 else
-                  "adb -s #{serial_number} #{arg}"
+                  "adb -s #{udid} #{arg}"
                 end
 
       begin
@@ -125,6 +127,7 @@ module Mdq
         result = JSON.parse(f.read)
         result['result']['devices'].each do |device|
           Device.create({
+                          udid: device['hardwareProperties']['udid'],
                           serial_number: device['hardwareProperties']['serialNumber'],
                           name: device['deviceProperties']['name'],
                           authorized: true,
@@ -151,6 +154,7 @@ ActiveRecord::Base.establish_connection(
 class InitialSchema < ActiveRecord::Migration[5.1]
   def self.up
     create_table :devices do |t|
+      t.string :udid
       t.string :serial_number
       t.string :name
       t.boolean :authorized

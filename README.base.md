@@ -29,6 +29,7 @@ $ mdq list
 [
    {
     "id": 1,
+    "udid": "XXXXX",
     "serial_number": "XXXXX",
     "name": "iPhone 16 Pro",
     "authorized": true,
@@ -51,6 +52,7 @@ $ mdq list -q="select * from devices where platform='iOS'"
 [
    {
     "id": 1,
+    "udid": "XXXXX",
     "serial_number": "XXXXX",
     "name": "iPhone 16 Pro",
     "authorized": true,
@@ -70,6 +72,7 @@ Details of the devices table.
 
 | name | description |
 | -- | -- |
+| udid | The device UDID. |
 | serial_number | This is the serial number of the device. |
 | name | User configurable name for the device. |
 | authorized | False if Android requires additional authentication. Will always be true for Apple devices.　|
