@@ -6,10 +6,10 @@ require 'active_record'
 # Mdq
 module Mdq
   # DDB
-  class DDB
+  class DDB # rubocop:disable Metrics/ClassLength
     def initializ; end
 
-    def get(sql)
+    def get(sql) # rubocop:disable Metrics/MethodLength
       ActiveRecord::Schema.verbose = false
       InitialSchema.migrate(:up)
 
@@ -28,9 +28,17 @@ module Mdq
       end
     end
 
+    def show_version(name, command)
+      output, = Open3.capture3(command)
+      puts "# #{name} installed."
+      puts output
+    rescue StandardError
+      puts "# #{name} is not installed."
+    end
+
     private
 
-    def android_discover
+    def android_discover # rubocop:disable Metrics/AbcSize,Metrics/CyclomaticComplexity,Metrics/MethodLength,Metrics/PerceivedComplexity
       # Androidデバイス一覧を取得する
       output, = adb_command('devices -l')
       return if output.nil?
@@ -112,7 +120,7 @@ module Mdq
       end
     end
 
-    def apple_discover
+    def apple_discover # rubocop:disable Metrics/AbcSize,Metrics/MethodLength
       file = [Dir.home, '.mdq.json'].join(File::Separator)
 
       begin
@@ -152,7 +160,7 @@ ActiveRecord::Base.establish_connection(
 
 # スキーマの設定
 class InitialSchema < ActiveRecord::Migration[5.1]
-  def self.up
+  def self.up # rubocop:disable Metrics/MethodLength
     create_table :devices do |t|
       t.string :udid
       t.string :serial_number
