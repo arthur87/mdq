@@ -6,10 +6,10 @@ require 'active_record'
 # Mdq
 module Mdq
   # DDB
-  class DDB # rubocop:disable Metrics/ClassLength
+  class DDB
     def initializ; end
 
-    def get(sql) # rubocop:disable Metrics/MethodLength
+    def get(sql)
       ActiveRecord::Schema.verbose = false
       InitialSchema.migrate(:up)
 
@@ -38,12 +38,12 @@ module Mdq
 
     private
 
-    def android_discover # rubocop:disable Metrics/AbcSize,Metrics/CyclomaticComplexity,Metrics/MethodLength,Metrics/PerceivedComplexity
+    def android_discover
       # Androidデバイス一覧を取得する
       output, = adb_command('devices -l')
       return if output.nil?
 
-      output.split("\n").each_with_index do |line, index| # rubocop:disable Metrics/BlockLength
+      output.split("\n").each_with_index do |line, index|
         next if index.zero?
 
         columns = line.split
@@ -52,17 +52,13 @@ module Mdq
         authorized = line.index('unauthorized').nil?
 
         if authorized
-          model, = adb_command('shell getprop ro.product.model', udid)
-          build_version, = adb_command('shell getprop ro.build.version.release', udid)
-          build_id, = adb_command('shell getprop ro.build.id', udid)
-          name, = adb_command('shell settings get global device_name', udid)
-
-          model = model.strip
-          build_version = build_version.strip
-          build_id = build_id.strip
-          name = name.strip
-          total_capacity = 0
-          free_capacity = 0
+          model = adb_command('shell getprop ro.product.model', udid)
+          build_version = adb_command('shell getprop ro.build.version.release', udid)
+          build_id = adb_command('shell getprop ro.build.id', udid)
+          name = adb_command('shell settings get global device_name', udid)
+          battery_level = nil
+          total_capacity = nil
+          free_capacity = nil
 
           # バッテリー
           lines1, = adb_command('shell dumpsys battery', udid)
@@ -114,13 +110,14 @@ module Mdq
                 end
 
       begin
-        Open3.capture3(command)
+        output, = Open3.capture3(command)
+        output.strip
       rescue StandardError
         nil
       end
     end
 
-    def apple_discover # rubocop:disable Metrics/AbcSize,Metrics/MethodLength
+    def apple_discover
       file = [Dir.home, '.mdq.json'].join(File::Separator)
 
       begin
@@ -160,7 +157,7 @@ ActiveRecord::Base.establish_connection(
 
 # スキーマの設定
 class InitialSchema < ActiveRecord::Migration[5.1]
-  def self.up # rubocop:disable Metrics/MethodLength
+  def self.up
     create_table :devices do |t|
       t.string :udid
       t.string :serial_number
