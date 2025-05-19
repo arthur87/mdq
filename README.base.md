@@ -93,7 +93,7 @@ Details of the devices table.
 | serial_number | Serial number | hardwareProperties.serialNumber |
 | name | device_name | deviceProperties.name | 
 | authorized | "False" if additional authentication is required. | Always "True" |
-| platform |　"Android" | hardwareProperties.platform |
+| platform | Always "Android" | hardwareProperties.platform |
 | marketing_name | Always "null" | hardwareProperties.marketingName |
 | model | ro.product.model | hardwareProperties.productType |
 | build_version | ro.build.version.release | deviceProperties.osVersionNumber |

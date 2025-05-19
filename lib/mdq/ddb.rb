@@ -40,7 +40,9 @@ module Mdq
     end
 
     # Androidデバイスのスクリーンショットを撮る
-    def device_screencap(output, udid, _is_android)
+    def device_screencap(output, udid, is_android)
+      return unless is_android
+
       FileUtils.mkdir_p(output)
       file = "/sdcard/#{udid}.png"
       adb_command("shell screencap -p #{file}", udid)
@@ -49,7 +51,7 @@ module Mdq
     end
 
     def app_install(input, udid, is_android)
-      if is_android
+      if is_android && input.end_with?('.apk')
         adb_command("install #{input}", udid)
       else
         apple_command("device install app #{input}", udid)
