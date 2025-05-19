@@ -22,8 +22,23 @@ It's easy to use.
 ```
 $ mdq list
 [
-   {
+  {
     "id": 1,
+    "udid": "XXXXX",
+    "serial_number": "XXXXX",
+    "name": "Pixel Tablet",
+    "authorized": true,
+    "platform": "Android",
+    "marketing_name": null,
+    "model": "Pixel Tablet",
+    "build_version": "16",
+    "build_id": "BP22.250325.012",
+    "battery_level": 89,
+    "total_capacity": 115855444,
+    "free_capacity": 101137652
+   },
+   {
+    "id": 2,
     "udid": "XXXXX",
     "serial_number": "XXXXX",
     "name": "iPhone 16 Pro",
@@ -63,19 +78,21 @@ $ mdq list -q="select * from devices where platform='iOS'"
 ]
 ```
 
+# Specification
+
 Details of the devices table.
 
-| name | description |
-| -- | -- |
-| udid | The device UDID. |
-| serial_number | This is the serial number of the device. |
-| name | User configurable name for the device. |
-| authorized | False if Android requires additional authentication. Will always be true for Apple devices.　|
-| platform |　The device platform. |
-| marketing_name | For Apple devices, the marketing name is displayed. |
-| model | The device model. |
-| build_version | The OS version. |
-| build_id | The detailed OS version. |
-| battery_level | Displays the battery capacity. For Apple devices, this will always be null. |
-| total_capacity | Displays the storage capacity. For Apple devices, this will always be null. |
-| free_capacity | Displays the available storage space. For Apple devices, this will always be null. |
+| name | android | apple devices |
+| -- | -- | -- |
+| udid | Serial number | hardwareProperties.udid |
+| serial_number | Serial number | hardwareProperties.serialNumber |
+| name | device_name | deviceProperties.name | 
+| authorized | "False" if additional authentication is required. | Always "True" |
+| platform |　"Android" | hardwareProperties.platform |
+| marketing_name | Always "null" | hardwareProperties.marketingName |
+| model | ro.product.model | hardwareProperties.productType |
+| build_version | ro.build.version.release | deviceProperties.osVersionNumber |
+| build_id | ro.build.id | deviceProperties.osBuildUpdate | 
+| battery_level | battery | Always "null" |
+| total_capacity | df | Always "null" |
+| free_capacity | df | Always "null" |

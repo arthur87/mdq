@@ -45,6 +45,7 @@ module Mdq
       file = "/sdcard/#{udid}.png"
       adb_command("shell screencap -p #{file}", udid)
       adb_command("pull #{file} #{output}", udid)
+      adb_command("adb shell rm #{file}")
     end
 
     private
