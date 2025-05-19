@@ -23,8 +23,11 @@ module Mdq
     end
 
     desc 'list', 'Show mobile devices'
+    method_option :output, desc: 'Save the results as a JSON file', aliases: '-o'
     method_option :query, desc: 'SQL to filter devices', aliases: '-q'
     method_option :cap, desc: 'Path to save screenshots(Android only)'
+    method_option :install, desc: 'Installing the app'
+    method_option :uninstall, desc: 'Uninstalling the app'
     def list
       Mdq::List.new(options)
     end

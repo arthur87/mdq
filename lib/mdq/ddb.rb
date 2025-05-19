@@ -40,12 +40,28 @@ module Mdq
     end
 
     # Androidデバイスのスクリーンショットを撮る
-    def android_screencap(output, udid)
+    def device_screencap(output, udid, _is_android)
       FileUtils.mkdir_p(output)
       file = "/sdcard/#{udid}.png"
       adb_command("shell screencap -p #{file}", udid)
       adb_command("pull #{file} #{output}", udid)
       adb_command("adb shell rm #{file}")
+    end
+
+    def app_install(input, udid, is_android)
+      if is_android
+        adb_command("install #{input}", udid)
+      else
+        apple_command("device install app #{input}", udid)
+      end
+    end
+
+    def app_uninstall(input, udid, is_android)
+      if is_android
+        adb_command("uninstall #{input}", udid)
+      else
+        apple_command("device uninstall app #{input}", udid)
+      end
     end
 
     private
@@ -120,6 +136,22 @@ module Mdq
                   "adb #{arg}"
                 else
                   "adb -s #{udid} #{arg}"
+                end
+
+      begin
+        output, = Open3.capture3(command)
+        output.strip
+      rescue StandardError
+        nil
+      end
+    end
+
+    # devicectlコマンド
+    def apple_command(arg, udid = nil)
+      command = if udid.nil?
+                  "xcrun devicectl #{arg}"
+                else
+                  "xcrun devicectl #{arg} --device #{udid}"
                 end
 
       begin
