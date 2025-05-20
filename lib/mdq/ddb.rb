@@ -48,28 +48,67 @@ module Mdq
       adb_command("shell screencap -p #{file}", udid)
       adb_command("pull #{file} #{output}", udid)
       adb_command("adb shell rm #{file}")
+
+      puts "# Screenshot of #{udid} to #{output}"
     end
 
     def app_install(input, udid, is_android)
-      if is_android && input.end_with?('.apk')
-        adb_command("install #{input}", udid)
-      else
-        apple_command("device install app #{input}", udid)
-      end
+      output, = adb_command("install #{input}", udid) if is_android && input.end_with?('.apk')
+      output, = apple_command("device install app #{input}", udid) if !is_android && input.end_with?('.ipa')
+
+      return unless output
+
+      puts "# Install #{input} to #{udid}"
+      puts output
     end
 
     def app_uninstall(input, udid, is_android)
       if is_android
-        adb_command("uninstall #{input}", udid)
+        output, = adb_command("uninstall #{input}", udid)
       else
-        apple_command("device uninstall app #{input}", udid)
+        output, = apple_command("device uninstall app #{input}", udid)
       end
+
+      return unless output
+
+      puts "# Uninstall #{input} from #{udid}"
+      puts output
     end
 
     private
 
+    # ADBコマンド
+    def adb_command(arg, udid = nil)
+      command = if udid.nil?
+                  "adb #{arg}"
+                else
+                  "adb -s #{udid} #{arg}"
+                end
+
+      begin
+        Open3.capture3(command)
+      rescue StandardError
+        nil
+      end
+    end
+
+    # devicectlコマンド
+    def apple_command(arg, udid = nil)
+      command = if udid.nil?
+                  "xcrun devicectl #{arg}"
+                else
+                  "xcrun devicectl #{arg} --device #{udid}"
+                end
+
+      begin
+        Open3.capture3(command)
+      rescue StandardError
+        nil
+      end
+    end
+
     # Androidデバイス一覧を取得する
-    def android_discover
+    def android_discover # rubocop:disable Metrics/AbcSize
       output, = adb_command('devices -l')
       return if output.nil?
 
@@ -82,10 +121,10 @@ module Mdq
         authorized = line.index('unauthorized').nil?
 
         if authorized
-          model = adb_command('shell getprop ro.product.model', udid)
-          build_version = adb_command('shell getprop ro.build.version.release', udid)
-          build_id = adb_command('shell getprop ro.build.id', udid)
-          name = adb_command('shell settings get global device_name', udid)
+          model, = adb_command('shell getprop ro.product.model', udid)
+          build_version, = adb_command('shell getprop ro.build.version.release', udid)
+          build_id, = adb_command('shell getprop ro.build.id', udid)
+          name, = adb_command('shell settings get global device_name', udid)
           battery_level = nil
           total_capacity = nil
           free_capacity = nil
@@ -111,11 +150,11 @@ module Mdq
           Device.create({
                           udid: udid,
                           serial_number: udid,
-                          name: name,
+                          name: name.strip,
                           authorized: true,
-                          model: model,
-                          build_version: build_version,
-                          build_id: build_id,
+                          model: model.strip,
+                          build_version: build_version.strip,
+                          build_id: build_id.strip,
                           battery_level: battery_level,
                           total_capacity: total_capacity,
                           free_capacity: free_capacity,
@@ -132,48 +171,11 @@ module Mdq
       end
     end
 
-    # ADBコマンド
-    def adb_command(arg, udid = nil)
-      command = if udid.nil?
-                  "adb #{arg}"
-                else
-                  "adb -s #{udid} #{arg}"
-                end
-
-      begin
-        output, = Open3.capture3(command)
-        output.strip
-      rescue StandardError
-        nil
-      end
-    end
-
-    # devicectlコマンド
-    def apple_command(arg, udid = nil)
-      command = if udid.nil?
-                  "xcrun devicectl #{arg}"
-                else
-                  "xcrun devicectl #{arg} --device #{udid}"
-                end
-
-      begin
-        output, = Open3.capture3(command)
-        output.strip
-      rescue StandardError
-        nil
-      end
-    end
-
     # Appleデバイス一覧を取得する
     def apple_discover
       file = [Dir.home, '.mdq.json'].join(File::Separator)
-
-      begin
-        Open3.capture3("xcrun devicectl list devices -v -j #{file}")
-      rescue StandardError
-        return
-      end
-
+      result = apple_command("list devices -v -j #{file}")
+      return if result.nil?
       return unless File.exist?(file)
 
       File.open(file, 'r') do |f|
