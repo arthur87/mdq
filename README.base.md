@@ -7,6 +7,8 @@
 
 # mdq - Mobile Device Query
 
+[![Gem Version](https://badge.fury.io/rb/mdq.svg)](https://badge.fury.io/rb/mdq)
+
 MDQ stands for Mobile Device Query and is a command line tool for displaying information about Android and Apple devices.  
 
 # Usage
