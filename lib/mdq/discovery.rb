@@ -6,73 +6,11 @@ require 'fileutils'
 
 # Mdq
 module Mdq
-  # DDB
-  class DDB
-    def initializ; end
-
-    # 接続中のデバイスを取得する
-    def get(sql)
+  # Discovery
+  class Discovery
+    def initialize
       ActiveRecord::Schema.verbose = false
       InitialSchema.migrate(:up)
-
-      android_discover
-      apple_discover
-
-      if sql
-        begin
-          ActiveRecord::Base.connection.execute(sql)
-        rescue StandardError
-          warn 'SQL Syntax Error.'
-          exit
-        end
-      else
-        Device.all
-      end
-    end
-
-    # 指定したソフトウェアのインストール状況を表示する
-    def show_version(name, command)
-      output, = Open3.capture3(command)
-      puts "# #{name} installed."
-      puts output
-    rescue StandardError
-      puts "# #{name} is not installed."
-    end
-
-    # Androidデバイスのスクリーンショットを撮る
-    def device_screencap(output, udid, is_android)
-      return unless is_android
-
-      FileUtils.mkdir_p(output)
-      file = "/sdcard/#{udid}.png"
-      adb_command("shell screencap -p #{file}", udid)
-      adb_command("pull #{file} #{output}", udid)
-      adb_command("adb shell rm #{file}")
-
-      puts "# Screenshot of #{udid} to #{output}"
-    end
-
-    def app_install(input, udid, is_android)
-      output, = adb_command("install #{input}", udid) if is_android && input.end_with?('.apk')
-      output, = apple_command("device install app #{input}", udid) if !is_android && input.end_with?('.ipa')
-
-      return unless output
-
-      puts "# Install #{input} to #{udid}"
-      puts output
-    end
-
-    def app_uninstall(input, udid, is_android)
-      if is_android
-        output, = adb_command("uninstall #{input}", udid)
-      else
-        output, = apple_command("device uninstall app #{input}", udid)
-      end
-
-      return unless output
-
-      puts "# Uninstall #{input} from #{udid}"
-      puts output
     end
 
     private
@@ -108,7 +46,7 @@ module Mdq
     end
 
     # Androidデバイス一覧を取得する
-    def android_discover # rubocop:disable Metrics/AbcSize
+    def android_discover
       output, = adb_command('devices -l')
       return if output.nil?
 
@@ -160,6 +98,7 @@ module Mdq
                           free_capacity: free_capacity,
                           platform: 'Android'
                         })
+
         else
           Device.create({
                           udid: udid,
@@ -173,7 +112,7 @@ module Mdq
 
     # Appleデバイス一覧を取得する
     def apple_discover
-      file = [Dir.home, '.mdq.json'].join(File::Separator)
+      file = [Dir.home, '.mdq'].join(File::Separator)
       result = apple_command("list devices -v -j #{file}")
       return if result.nil?
       return unless File.exist?(file)
@@ -181,8 +120,9 @@ module Mdq
       File.open(file, 'r') do |f|
         result = JSON.parse(f.read)
         result['result']['devices'].each do |device|
+          udid = device['hardwareProperties']['udid']
           Device.create({
-                          udid: device['hardwareProperties']['udid'],
+                          udid: udid,
                           serial_number: device['hardwareProperties']['serialNumber'],
                           name: device['deviceProperties']['name'],
                           authorized: true,
@@ -196,6 +136,39 @@ module Mdq
 
         File.delete(file)
       end
+    end
+
+    # Androidのアプリを取得する
+    def android_apps(udid)
+      apps, = adb_command('shell pm list packages', udid)
+      apps.split("\n").each do |line3|
+        App.create({
+                     udid: udid,
+                     package_name: line3.gsub('package:', '')
+                   })
+      end
+    end
+
+    # Appleデバイスのアプリを取得する
+    def apple_apps(udid)
+      file = [Dir.home, '.mdq-apps'].join(File::Separator)
+      apple_command("device info apps -j #{file}", udid)
+      File.open(file, 'r') do |f|
+        result = JSON.parse(f.read)
+        begin
+          result['result']['apps'].each do |app|
+            App.create({
+                         udid: udid,
+                         package_name: app['bundleIdentifier'],
+                         name: app['name'],
+                         version: app['version']
+                       })
+          end
+        rescue StandardError
+          # none
+        end
+      end
+      File.delete(file)
     end
   end
 end
@@ -222,12 +195,28 @@ class InitialSchema < ActiveRecord::Migration[5.1]
       t.integer :total_capacity
       t.integer :free_capacity
     end
+
+    create_table :apps do |t|
+      t.string :udid
+      t.string :name
+      t.string :package_name
+      t.string :version
+    end
   end
 
   def self.down
     drop_table :devices
+    drop_table :apps
   end
 end
 
+# Device
 class Device < ActiveRecord::Base
+  def android?
+    platform == 'Android'
+  end
+end
+
+# App
+class App < ActiveRecord::Base
 end

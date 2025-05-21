@@ -78,6 +78,34 @@ $ mdq list -q="select * from devices where platform='iOS'"
 ]
 ```
 
+View apps installed on your device.
+Apple Devices displays the apps installed with Xcode.
+
+```
+$ mdq list -q='select * from apps'
+```
+
+Take a screenshot on Android.
+
+```
+$ mdq list --cap='/Users/xxxxx/'
+```
+
+Install the app.
+
+```
+$ mdq list --install='/Users/xxxxx/example.apk'
+$ mdq list --install='/Users/xxxxx/example.ipa'
+```
+
+Uninstall the app.
+
+```
+$ mdq list --uninstall='com.example.app'
+```
+
+
+
 # Specification
 
 Details of the devices table.
@@ -96,3 +124,14 @@ Details of the devices table.
 | battery_level | battery | Always "null" |
 | total_capacity | df | Always "null" |
 | free_capacity | df | Always "null" |
+
+
+Details of the apps table.
+Apple Devices displays the apps installed with Xcode.
+
+| name | android | apple devices |
+| -- | -- | -- |
+| udid | Serial number | hardwareProperties.udid |
+| name | Always "null" | name |
+| package_name | Package name | bundleIdentifier |
+| version | Always "null" | version |
