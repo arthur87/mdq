@@ -7,10 +7,10 @@ module Mdq
   # List
   class List
     def initialize(options)
-      ddb = Mdq::DDB.new
+      db = Mdq::DB.new
 
       query = options['query']
-      models = ddb.get(query)
+      models = db.get(query)
 
       output = JSON.pretty_generate(models.as_json)
       puts output
@@ -23,7 +23,7 @@ module Mdq
       models.each do |device|
         model = Device.find_by(udid: device.udid)
         udid = model.udid
-        is_android = model.platform == 'Android'
+        is_android = model.android?
 
         ddb.device_screencap(options[:cap], udid, is_android) if options[:cap]
         ddb.app_install(options[:install], udid, is_android) if options[:install]
