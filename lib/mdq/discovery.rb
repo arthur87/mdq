@@ -114,7 +114,7 @@ module Mdq
     def apple_discover
       file = [Dir.home, '.mdq'].join(File::Separator)
       result = apple_command("list devices -v -j #{file}")
-      return if result.nil?
+
       return unless File.exist?(file)
 
       File.open(file, 'r') do |f|
@@ -130,7 +130,8 @@ module Mdq
                           marketing_name: device['hardwareProperties']['marketingName'],
                           model: device['hardwareProperties']['productType'],
                           build_version: device['deviceProperties']['osVersionNumber'],
-                          build_id: device['deviceProperties']['osBuildUpdate']
+                          build_id: device['deviceProperties']['osBuildUpdate'],
+                          total_capacity: device['hardwareProperties']['internalStorageCapacity']
                         })
         end
 

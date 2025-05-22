@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    mdq (0.3.0)
+    mdq (0.4.0)
       activerecord
       sqlite3
       thor
