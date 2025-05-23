@@ -13,6 +13,14 @@ module Mdq
       InitialSchema.migrate(:up)
     end
 
+    def android_discoverable?
+      adb_command('version').present?
+    end
+
+    def apple_discoverable?
+      apple_command('--version').present?
+    end
+
     private
 
     # ADBコマンド

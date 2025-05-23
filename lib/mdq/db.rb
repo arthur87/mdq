@@ -37,15 +37,6 @@ module Mdq
       end
     end
 
-    # 指定したソフトウェアのインストール状況を表示する
-    def show_version(name, command)
-      output, = Open3.capture3(command)
-      puts "# #{name} installed."
-      puts output
-    rescue StandardError
-      puts "# #{name} is not installed."
-    end
-
     # Androidデバイスのスクリーンショットを撮る
     def device_screencap(output, udid, is_android)
       return unless is_android

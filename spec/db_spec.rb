@@ -3,20 +3,21 @@
 require 'mdq'
 require 'mdq/db'
 
-RSpec.describe Mdq::DB do
+RSpec.describe Mdq::DB do # rubocop:disable Metrics/BlockLength
   let(:db) { Mdq::DB.new }
-  let(:android_device) do
-    ['List of devices attached',
-     'ANDROID_UDID         device 2-1 product:panther_beta model:Pixel_7 device:panther transport_id:10']
-      .join("\n")
-  end
   let(:file) do
     [Dir.home, '.mdq'].join(File::Separator)
   end
 
   before do
     allow(db).to receive(:sell).and_call_original
-    allow(db).to receive(:adb_command).with('devices -l').and_return(android_device)
+
+    # Android Devices
+    allow(db).to receive(:adb_command).with('devices -l').and_return(
+      ['List of devices attached',
+       'ANDROID_UDID         device 2-1 product:panther_beta model:Pixel_7 device:panther transport_id:10']
+         .join("\n")
+    )
 
     allow(db).to receive(:adb_command).with('shell getprop ro.product.model',
                                             'ANDROID_UDID').and_return('Pixel 7')
@@ -32,13 +33,19 @@ RSpec.describe Mdq::DB do
        '/dev/block/dm-74  115249236 18704620  96413544  17% /data'].join("\n")
     )
 
+    allow(db).to receive(:adb_command).with('version').and_return(
+      ['Android Debug Bridge version 1.0.41',
+       'Version 35.0.1-11580240',
+       'Installed as /opt/homebrew/bin/adb',
+       'Running on Darwin 24.4.0 (arm64)'].join('\n')
+    )
+
+    # Apple Devices
     allow(db).to receive(:apple_command).with("list devices -v -j #{file}").and_return(nil)
+    allow(db).to receive(:apple_command).with('--version').and_return(443.19)
   end
 
-  it 'devices' do
-    expect(db.send(:adb_command, 'devices -l')).to eq android_device
-    expect(db.send(:apple_command, "list devices -v -j #{file}")).to eq nil
-
+  it 'db' do
     FileUtils.cp([__dir__, 'mdq.json'].join(File::Separator), file)
 
     db.send(:android_discover)
@@ -76,5 +83,9 @@ RSpec.describe Mdq::DB do
     }].to_json
 
     expect(devices.to_json).to eq test_devices
+
+    # check
+    expect(db.send(:android_discoverable?)).to be true
+    expect(db.send(:apple_discoverable?)).to be true
   end
 end
