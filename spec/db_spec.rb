@@ -6,13 +6,14 @@ require 'mdq/db'
 RSpec.describe Mdq::DB do # rubocop:disable Metrics/BlockLength
   let(:db) { Mdq::DB.new }
   let(:file) do
-    [Dir.home, '.mdq'].join(File::Separator)
+    [Dir.home, '.mdq', 'mdq.json'].join(File::Separator)
   end
   let(:apps_file) do
-    [Dir.home, '.mdq-apps'].join(File::Separator)
+    [Dir.home, '.mdq', 'mdq-apps.json'].join(File::Separator)
   end
 
   before do
+    FileUtils.mkdir_p([Dir.home, '.mdq'].join(File::Separator))
     allow(db).to receive(:sell).and_call_original
 
     # Android Devices

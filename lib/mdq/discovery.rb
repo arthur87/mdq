@@ -8,7 +8,9 @@ require 'fileutils'
 module Mdq
   # Discovery
   class Discovery
-    def initialize; end
+    def initialize
+      @home = FileUtils.mkdir_p([Dir.home, '.mdq'].join(File::Separator))
+    end
 
     def android_discoverable?
       adb_command('version').present?
@@ -117,7 +119,7 @@ module Mdq
 
     # Appleデバイス一覧を取得する
     def apple_discover
-      file = [Dir.home, '.mdq'].join(File::Separator)
+      file = [@home, 'mdq.json'].join(File::Separator)
       result = apple_command("list devices -v -j #{file}")
 
       return unless File.exist?(file)
@@ -157,7 +159,7 @@ module Mdq
 
     # Appleデバイスのアプリを取得する
     def apple_apps(udid)
-      file = [Dir.home, '.mdq-apps'].join(File::Separator)
+      file = [@home, 'mdq-apps.json'].join(File::Separator)
       apple_command("device info apps -j #{file}", udid)
       File.open(file, 'r') do |f|
         result = JSON.parse(f.read)
