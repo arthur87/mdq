@@ -10,8 +10,7 @@ module Mdq
   class DB < Discovery
     # クエリの実行
     def get(sql)
-      InitialSchema.migrate(:reset)
-
+      reset
       # デバイスの発見
       android_discover
       apple_discover
@@ -35,15 +34,6 @@ module Mdq
       else
         Device.all
       end
-    end
-
-    # 指定したソフトウェアのインストール状況を表示する
-    def show_version(name, command)
-      output, = Open3.capture3(command)
-      puts "# #{name} installed."
-      puts output
-    rescue StandardError
-      puts "# #{name} is not installed."
     end
 
     # Androidデバイスのスクリーンショットを撮る

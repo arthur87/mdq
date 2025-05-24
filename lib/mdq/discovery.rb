@@ -9,8 +9,15 @@ module Mdq
   # Discovery
   class Discovery
     def initialize
-      ActiveRecord::Schema.verbose = false
-      InitialSchema.migrate(:up)
+      @home = FileUtils.mkdir_p([Dir.home, '.mdq'].join(File::Separator))
+    end
+
+    def android_discoverable?
+      adb_command('version').present?
+    end
+
+    def apple_discoverable?
+      apple_command('--version').present?
     end
 
     private
@@ -112,9 +119,9 @@ module Mdq
 
     # Appleデバイス一覧を取得する
     def apple_discover
-      file = [Dir.home, '.mdq'].join(File::Separator)
+      file = [@home, 'mdq.json'].join(File::Separator)
       result = apple_command("list devices -v -j #{file}")
-      return if result.nil?
+
       return unless File.exist?(file)
 
       File.open(file, 'r') do |f|
@@ -130,7 +137,8 @@ module Mdq
                           marketing_name: device['hardwareProperties']['marketingName'],
                           model: device['hardwareProperties']['productType'],
                           build_version: device['deviceProperties']['osVersionNumber'],
-                          build_id: device['deviceProperties']['osBuildUpdate']
+                          build_id: device['deviceProperties']['osBuildUpdate'],
+                          total_capacity: device['hardwareProperties']['internalStorageCapacity']
                         })
         end
 
@@ -151,7 +159,7 @@ module Mdq
 
     # Appleデバイスのアプリを取得する
     def apple_apps(udid)
-      file = [Dir.home, '.mdq-apps'].join(File::Separator)
+      file = [@home, 'mdq-apps.json'].join(File::Separator)
       apple_command("device info apps -j #{file}", udid)
       File.open(file, 'r') do |f|
         result = JSON.parse(f.read)
@@ -170,44 +178,44 @@ module Mdq
       end
       File.delete(file)
     end
+
+    def reset
+      Device.destroy_all
+      App.destroy_all
+      ActiveRecord::Base.connection.execute("delete from sqlite_sequence where name='devices'")
+      ActiveRecord::Base.connection.execute("delete from sqlite_sequence where name='apps'")
+    end
   end
 end
+
+ActiveRecord::Schema.verbose = false
+ActiveRecord::Migration.verbose = false
 
 ActiveRecord::Base.establish_connection(
   adapter: 'sqlite3',
   database: ':memory:'
 )
 
-# スキーマの設定
-class InitialSchema < ActiveRecord::Migration[5.1]
-  def self.up
-    create_table :devices do |t|
-      t.string :udid
-      t.string :serial_number
-      t.string :name
-      t.boolean :authorized
-      t.string :platform
-      t.string :marketing_name
-      t.string :model
-      t.string :build_version
-      t.string :build_id
-      t.integer :battery_level
-      t.integer :total_capacity
-      t.integer :free_capacity
-    end
+ActiveRecord::Migration.create_table :devices do |t|
+  t.string :udid
+  t.string :serial_number
+  t.string :name
+  t.boolean :authorized
+  t.string :platform
+  t.string :marketing_name
+  t.string :model
+  t.string :build_version
+  t.string :build_id
+  t.integer :battery_level
+  t.integer :total_capacity
+  t.integer :free_capacity
+end
 
-    create_table :apps do |t|
-      t.string :udid
-      t.string :name
-      t.string :package_name
-      t.string :version
-    end
-  end
-
-  def self.down
-    drop_table :devices
-    drop_table :apps
-  end
+ActiveRecord::Migration.create_table :apps do |t|
+  t.string :udid
+  t.string :name
+  t.string :package_name
+  t.string :version
 end
 
 # Device
