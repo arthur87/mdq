@@ -25,9 +25,9 @@ module Mdq
         udid = model.udid
         is_android = model.android?
 
-        ddb.device_screencap(options[:cap], udid, is_android) if options[:cap]
-        ddb.app_install(options[:install], udid, is_android) if options[:install]
-        ddb.app_uninstall(options[:uninstall], udid, is_android) if options[:uninstall]
+        db.device_screencap(options[:cap], udid, is_android) if options[:cap]
+        db.app_install(options[:install], udid, is_android) if options[:install]
+        db.app_uninstall(options[:uninstall], udid, is_android) if options[:uninstall]
       rescue StandardError
         # none
       end
