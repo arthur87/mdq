@@ -8,10 +8,7 @@ require 'fileutils'
 module Mdq
   # Discovery
   class Discovery
-    def initialize
-      ActiveRecord::Schema.verbose = false
-      InitialSchema.migrate(:up)
-    end
+    def initialize; end
 
     def android_discoverable?
       adb_command('version').present?
@@ -179,44 +176,44 @@ module Mdq
       end
       File.delete(file)
     end
+
+    def reset
+      Device.destroy_all
+      App.destroy_all
+      ActiveRecord::Base.connection.execute("delete from sqlite_sequence where name='devices'")
+      ActiveRecord::Base.connection.execute("delete from sqlite_sequence where name='apps'")
+    end
   end
 end
+
+ActiveRecord::Schema.verbose = false
+ActiveRecord::Migration.verbose = false
 
 ActiveRecord::Base.establish_connection(
   adapter: 'sqlite3',
   database: ':memory:'
 )
 
-# スキーマの設定
-class InitialSchema < ActiveRecord::Migration[5.1]
-  def self.up
-    create_table :devices do |t|
-      t.string :udid
-      t.string :serial_number
-      t.string :name
-      t.boolean :authorized
-      t.string :platform
-      t.string :marketing_name
-      t.string :model
-      t.string :build_version
-      t.string :build_id
-      t.integer :battery_level
-      t.integer :total_capacity
-      t.integer :free_capacity
-    end
+ActiveRecord::Migration.create_table :devices do |t|
+  t.string :udid
+  t.string :serial_number
+  t.string :name
+  t.boolean :authorized
+  t.string :platform
+  t.string :marketing_name
+  t.string :model
+  t.string :build_version
+  t.string :build_id
+  t.integer :battery_level
+  t.integer :total_capacity
+  t.integer :free_capacity
+end
 
-    create_table :apps do |t|
-      t.string :udid
-      t.string :name
-      t.string :package_name
-      t.string :version
-    end
-  end
-
-  def self.down
-    drop_table :devices
-    drop_table :apps
-  end
+ActiveRecord::Migration.create_table :apps do |t|
+  t.string :udid
+  t.string :name
+  t.string :package_name
+  t.string :version
 end
 
 # Device

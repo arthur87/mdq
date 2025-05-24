@@ -10,8 +10,7 @@ module Mdq
   class DB < Discovery
     # クエリの実行
     def get(sql)
-      InitialSchema.migrate(:reset)
-
+      reset
       # デバイスの発見
       android_discover
       apple_discover
