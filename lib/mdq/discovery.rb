@@ -53,7 +53,7 @@ module Mdq
     end
 
     # Androidデバイス一覧を取得する
-    def android_discover # rubocop:disable Metrics/AbcSize,Metrics/MethodLength
+    def android_discover
       output, = adb_command('devices -l')
       return if output.nil?
 
@@ -71,9 +71,8 @@ module Mdq
           build_id, = adb_command('shell getprop ro.build.id', udid)
           name, = adb_command('shell settings get global device_name', udid)
           battery_level = nil
-          total_disk = nil
-          available_disk = nil
-          used_disk = nil
+          total_capacity = nil
+          free_capacity = nil
 
           # バッテリー
           lines1, = adb_command('shell dumpsys battery', udid)
@@ -87,11 +86,10 @@ module Mdq
             next if index2.zero?
 
             columns = line2.split
-            next if columns[5].index('/data').nil?
-
-            total_disk = columns[1].to_f * 1000
-            available_disk = columns[3].to_f * 1000
-            used_disk = total_disk - available_disk
+            unless columns[5].index('/data').nil?
+              total_capacity = columns[1]
+              free_capacity = columns[3]
+            end
           end
 
           Device.create({
@@ -103,13 +101,8 @@ module Mdq
                           build_version: build_version.strip,
                           build_id: build_id.strip,
                           battery_level: battery_level,
-                          total_disk: total_disk,
-                          available_disk: available_disk,
-                          used_disk: used_disk,
-                          capacity: (used_disk / total_disk) * 100,
-                          human_readable_total_disk: number_to_human_size(total_disk),
-                          human_readable_available_disk: number_to_human_size(available_disk),
-                          human_readable_used_disk: number_to_human_size(used_disk),
+                          total_capacity: total_capacity,
+                          free_capacity: free_capacity,
                           platform: 'Android'
                         })
 
@@ -135,7 +128,6 @@ module Mdq
         result = JSON.parse(f.read)
         result['result']['devices'].each do |device|
           udid = device['hardwareProperties']['udid']
-          total_disk = device['hardwareProperties']['internalStorageCapacity']
           Device.create({
                           udid: udid,
                           serial_number: device['hardwareProperties']['serialNumber'],
@@ -146,8 +138,7 @@ module Mdq
                           model: device['hardwareProperties']['productType'],
                           build_version: device['deviceProperties']['osVersionNumber'],
                           build_id: device['deviceProperties']['osBuildUpdate'],
-                          total_disk: total_disk,
-                          human_readable_total_disk: number_to_human_size(total_disk)
+                          total_capacity: device['hardwareProperties']['internalStorageCapacity']
                         })
         end
 
@@ -194,20 +185,6 @@ module Mdq
       ActiveRecord::Base.connection.execute("delete from sqlite_sequence where name='devices'")
       ActiveRecord::Base.connection.execute("delete from sqlite_sequence where name='apps'")
     end
-
-    def number_to_human_size(size)
-      return nil if size.nil?
-
-      units = [' B', ' KB', ' MB', ' GB', ' TB']
-
-      i = 0
-      while size > 1024
-        size /= 1024.0 # 浮動小数点数での割り算
-        i += 1
-      end
-
-      "#{(size * 100).round / 100.0}#{units[i]}"
-    end
   end
 end
 
@@ -230,13 +207,8 @@ ActiveRecord::Migration.create_table :devices do |t|
   t.string :build_version
   t.string :build_id
   t.integer :battery_level
-  t.integer :total_disk
-  t.integer :used_disk
-  t.integer :available_disk
-  t.integer :capacity
-  t.string :human_readable_total_disk
-  t.string :human_readable_used_disk
-  t.string :human_readable_available_disk
+  t.integer :total_capacity
+  t.integer :free_capacity
 end
 
 ActiveRecord::Migration.create_table :apps do |t|

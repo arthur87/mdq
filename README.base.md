@@ -31,28 +31,23 @@ $ mdq list
 [
   {
     "id": 1,
-    "udid": "ANDROID_UDID",
-    "serial_number": "ANDROID_UDID",
-    "name": "Pixel 7",
+    "udid": "XXXXX",
+    "serial_number": "XXXXX",
+    "name": "Pixel Tablet",
     "authorized": true,
     "platform": "Android",
     "marketing_name": null,
-    "model": "Pixel 7",
+    "model": "Pixel Tablet",
     "build_version": "16",
-    "build_id": "BP31.250502.008",
-    "battery_level": 88,
-    "total_disk": 115249236000,
-    "used_disk": 18835692000,
-    "available_disk": 96413544000,
-    "capacity": 16,
-    "human_readable_total_disk": "107.33 GB",
-    "human_readable_used_disk": "17.54 GB",
-    "human_readable_available_disk": "89.79 GB"
-  },
-  {
+    "build_id": "BP22.250325.012",
+    "battery_level": 89,
+    "total_capacity": 115855444,
+    "free_capacity": 101137652
+   },
+   {
     "id": 2,
-    "udid": "APPLE_UDID",
-    "serial_number": "XXX",
+    "udid": "XXXXX",
+    "serial_number": "XXXXX",
     "name": "iPhone 16 Pro",
     "authorized": true,
     "platform": "iOS",
@@ -61,13 +56,8 @@ $ mdq list
     "build_version": "18.4.1",
     "build_id": "22E252",
     "battery_level": null,
-    "total_disk": 128000000000,
-    "used_disk": null,
-    "available_disk": null,
-    "capacity": null,
-    "human_readable_total_disk": "119.21 GB",
-    "human_readable_used_disk": null,
-    "human_readable_available_disk": null
+    "total_capacity": null,
+    "free_capacity": null
   }
 ]
 ```
@@ -77,10 +67,10 @@ You can filter using SQL.
 ```
 $ mdq list -q="select * from devices where platform='iOS'"
 [
-  {
+   {
     "id": 1,
-    "udid": "APPLE_UDID",
-    "serial_number": "XXX",
+    "udid": "XXXXX",
+    "serial_number": "XXXXX",
     "name": "iPhone 16 Pro",
     "authorized": true,
     "platform": "iOS",
@@ -89,13 +79,8 @@ $ mdq list -q="select * from devices where platform='iOS'"
     "build_version": "18.4.1",
     "build_id": "22E252",
     "battery_level": null,
-    "total_disk": 128000000000,
-    "used_disk": null,
-    "available_disk": null,
-    "capacity": null,
-    "human_readable_total_disk": "119.21 GB",
-    "human_readable_used_disk": null,
-    "human_readable_available_disk": null
+    "total_capacity": null,
+    "free_capacity": null
   }
 ]
 ```
@@ -144,13 +129,9 @@ Details of the devices table.
 | build_version | ro.build.version.release | deviceProperties.osVersionNumber |
 | build_id | ro.build.id | deviceProperties.osBuildUpdate | 
 | battery_level | battery | Always "null" |
-| total_disk | df | hardwareProperties.internalStorageCapacity |
-| available_disk | df | Always "null" |
-| used_disk | total_disk - total_disk | Always "null" |
-| capacity | (used_disk / total_disk) * 100 | Always "null" |
-| human_readable_total_disk | total_disk | total_disk |
-| human_readable_available_disk | available_disk | Always "null" |
-| human_readable_used_disk | used_disk | Always "null" |
+| total_capacity | df | hardwareProperties.internalStorageCapacity |
+| free_capacity | df | Always "null" |
+
 
 Details of the apps table.
 Apple Devices displays the apps installed with Xcode.
