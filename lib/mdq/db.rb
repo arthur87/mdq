@@ -27,9 +27,8 @@ module Mdq
 
         begin
           ActiveRecord::Base.connection.execute(sql)
-        rescue StandardError
-          warn 'SQL Syntax Error.'
-          exit
+        rescue StandardError => e
+          { result: e }
         end
       else
         Device.all
@@ -46,7 +45,7 @@ module Mdq
       adb_command("pull #{file} #{output}", udid)
       adb_command("adb shell rm #{file}")
 
-      puts "# Screenshot of #{udid} to #{output}"
+      { command: 'cap', udid: udid, result: nil }
     end
 
     # Appをインストールする
@@ -54,10 +53,7 @@ module Mdq
       output, = adb_command("install #{input}", udid) if is_android && input.end_with?('.apk')
       output, = apple_command("device install app #{input}", udid) if !is_android && input.end_with?('.ipa')
 
-      return unless output
-
-      puts "# Install #{input} to #{udid}"
-      puts output
+      { command: 'install', udid: udid, result: output }
     end
 
     # Appをアンインストールする
@@ -68,10 +64,7 @@ module Mdq
         output, = apple_command("device uninstall app #{input}", udid)
       end
 
-      return unless output
-
-      puts "# Uninstall #{input} from #{udid}"
-      puts output
+      { command: 'uninstall', udid: udid, result: output }
     end
   end
 end
