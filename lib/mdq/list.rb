@@ -20,17 +20,21 @@ module Mdq
         end
       end
 
+      ob = Mdq::OutputBuilder.new
+
       models.each do |device|
         model = Device.find_by(udid: device.udid)
         udid = model.udid
         is_android = model.android?
 
-        db.device_screencap(options[:cap], udid, is_android) if options[:cap]
-        db.app_install(options[:install], udid, is_android) if options[:install]
-        db.app_uninstall(options[:uninstall], udid, is_android) if options[:uninstall]
+        ob.add(db.device_screencap(options[:cap], udid, is_android)) if options[:cap]
+        ob.add(db.app_install(options[:install], udid, is_android)) if options[:install]
+        ob.add(db.app_uninstall(options[:uninstall], udid, is_android)) if options[:uninstall]
       rescue StandardError
         # none
       end
+
+      ob.print
     end
   end
 end

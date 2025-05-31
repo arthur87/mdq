@@ -4,6 +4,7 @@ require_relative 'mdq/version'
 require 'mdq/cli'
 require 'mdq/check'
 require 'mdq/list'
+require 'mdq/output_builder'
 require 'mdq/discovery'
 require 'mdq/db'
 

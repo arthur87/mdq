@@ -188,6 +188,7 @@ module Mdq
       File.delete(file)
     end
 
+    # DBのリセット
     def reset
       Device.destroy_all
       App.destroy_all
