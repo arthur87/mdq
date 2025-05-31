@@ -84,9 +84,9 @@ RSpec.describe Mdq::DB do # rubocop:disable Metrics/BlockLength
       "used_disk": 18_835_692_000,
       "available_disk": 96_413_544_000,
       "capacity": 16,
-      "human_readable_total_disk": '107.33 GB',
-      "human_readable_used_disk": '17.54 GB',
-      "human_readable_available_disk": '89.79 GB'
+      "human_readable_total_disk": '115.25 GB',
+      "human_readable_used_disk": '18.84 GB',
+      "human_readable_available_disk": '96.41 GB'
     }, {
       "id": 2,
       "udid": 'APPLE_UDID',
@@ -103,7 +103,7 @@ RSpec.describe Mdq::DB do # rubocop:disable Metrics/BlockLength
       "used_disk": nil,
       "available_disk": nil,
       "capacity": nil,
-      "human_readable_total_disk": '119.21 GB',
+      "human_readable_total_disk": '128.0 GB',
       "human_readable_used_disk": nil,
       "human_readable_available_disk": nil
     }].to_json
