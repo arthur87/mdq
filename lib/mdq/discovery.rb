@@ -202,8 +202,9 @@ module Mdq
       units = [' B', ' KB', ' MB', ' GB', ' TB']
 
       i = 0
-      while size > 1024
-        size /= 1024.0 # 浮動小数点数での割り算
+      k = 1000.0
+      while size > k
+        size /= k
         i += 1
       end
 
