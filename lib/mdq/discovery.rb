@@ -196,6 +196,7 @@ module Mdq
       ActiveRecord::Base.connection.execute("delete from sqlite_sequence where name='apps'")
     end
 
+    # バイト単位の数値を変換
     def number_to_human_size(size)
       return nil if size.nil?
 
