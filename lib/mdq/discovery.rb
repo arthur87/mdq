@@ -200,7 +200,7 @@ module Mdq
     end
 
     # バイト単位の数値を変換
-    def number_to_human_size(size, k)
+    def number_to_human_size(size, k) # rubocop:disable Naming/MethodParameterName
       return nil if size.nil?
 
       units = [' B', ' KB', ' MB', ' GB', ' TB']
