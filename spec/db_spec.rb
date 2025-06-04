@@ -80,13 +80,13 @@ RSpec.describe Mdq::DB do # rubocop:disable Metrics/BlockLength
       "build_version": '16',
       "build_id": 'BP31.250502.008',
       "battery_level": 88,
-      "total_disk": 115_249_236_000,
-      "used_disk": 18_835_692_000,
-      "available_disk": 96_413_544_000,
+      "total_disk": 118_015_217_664,
+      "used_disk": 19_287_748_608,
+      "available_disk": 98_727_469_056,
       "capacity": 16,
-      "human_readable_total_disk": '115.25 GB',
-      "human_readable_used_disk": '18.84 GB',
-      "human_readable_available_disk": '96.41 GB'
+      "human_readable_total_disk": '109.91 GB',
+      "human_readable_used_disk": '17.96 GB',
+      "human_readable_available_disk": '91.95 GB'
     }, {
       "id": 2,
       "udid": 'APPLE_UDID',

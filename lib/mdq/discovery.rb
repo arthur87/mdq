@@ -57,6 +57,8 @@ module Mdq
       output, = adb_command('devices -l')
       return if output.nil?
 
+      k = 1024.0
+
       output.split("\n").each_with_index do |line, index|
         next if index.zero?
 
@@ -89,8 +91,8 @@ module Mdq
             columns = line2.split
             next if columns[5].index('/data').nil?
 
-            total_disk = columns[1].to_f * 1000
-            available_disk = columns[3].to_f * 1000
+            total_disk = columns[1].to_f * k
+            available_disk = columns[3].to_f * k
             used_disk = total_disk - available_disk
           end
 
@@ -107,9 +109,9 @@ module Mdq
                           available_disk: available_disk,
                           used_disk: used_disk,
                           capacity: (used_disk / total_disk) * 100,
-                          human_readable_total_disk: number_to_human_size(total_disk),
-                          human_readable_available_disk: number_to_human_size(available_disk),
-                          human_readable_used_disk: number_to_human_size(used_disk),
+                          human_readable_total_disk: number_to_human_size(total_disk, k),
+                          human_readable_available_disk: number_to_human_size(available_disk, k),
+                          human_readable_used_disk: number_to_human_size(used_disk, k),
                           platform: 'Android'
                         })
 
@@ -128,6 +130,7 @@ module Mdq
     def apple_discover
       file = [@home, 'mdq.json'].join(File::Separator)
       result = apple_command("list devices -v -j #{file}")
+      k = 1000.0
 
       return unless File.exist?(file)
 
@@ -147,7 +150,7 @@ module Mdq
                           build_version: device['deviceProperties']['osVersionNumber'],
                           build_id: device['deviceProperties']['osBuildUpdate'],
                           total_disk: total_disk,
-                          human_readable_total_disk: number_to_human_size(total_disk)
+                          human_readable_total_disk: number_to_human_size(total_disk, k)
                         })
         end
 
@@ -197,13 +200,12 @@ module Mdq
     end
 
     # バイト単位の数値を変換
-    def number_to_human_size(size)
+    def number_to_human_size(size, k)
       return nil if size.nil?
 
       units = [' B', ' KB', ' MB', ' GB', ' TB']
 
       i = 0
-      k = 1000.0
       while size > k
         size /= k
         i += 1
