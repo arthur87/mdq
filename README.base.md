@@ -41,13 +41,13 @@ $ mdq list
     "build_version": "16",
     "build_id": "BP31.250502.008",
     "battery_level": 88,
-    "total_disk": 115249236000,
-    "used_disk": 18835692000,
-    "available_disk": 96413544000,
+    "total_disk": 118015217664,
+    "used_disk": 19287748608,
+    "available_disk": 98727469056,
     "capacity": 16,
-    "human_readable_total_disk": "115.25 GB",
-    "human_readable_used_disk": "18.84 GB",
-    "human_readable_available_disk": "96.41 GB"
+    "human_readable_total_disk": "109.91 GB",
+    "human_readable_used_disk": "17.96 GB",
+    "human_readable_available_disk": "91.95 GB"
   },
   {
     "id": 2,
