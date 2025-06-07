@@ -7,7 +7,7 @@ require 'fileutils'
 # Mdq
 module Mdq
   # Discovery
-  class Discovery
+  class Discovery # rubocop:disable Metrics/ClassLength
     def initialize
       @home = FileUtils.mkdir_p([Dir.home, '.mdq'].join(File::Separator))
     end
@@ -59,7 +59,7 @@ module Mdq
 
       k = 1024.0
 
-      output.split("\n").each_with_index do |output_line, output_index|
+      output.split("\n").each_with_index do |output_line, output_index| # rubocop:disable Metrics/BlockLength
         next if output_index.zero?
 
         columns = output_line.split
@@ -79,6 +79,7 @@ module Mdq
           mac_address = nil
           ip_address = nil
           ipv6_address = []
+          wifi_network = nil
 
           # バッテリー
           lines1, = adb_command('shell dumpsys battery', udid)
@@ -112,6 +113,16 @@ module Mdq
             ipv6_address << match[1] unless match.nil?
           end
 
+          # Wi-Fi
+          lines4, = adb_command("shell dumpsys netstats | grep -E 'iface=wlan0'", udid)
+          lines4.split("\n").each do |line|
+            match = line.match(' wifiNetworkKey="(.*?)"')
+            next if match[1].nil?
+
+            wifi_network = match[1]
+            break
+          end
+
           Device.create({
                           udid: udid,
                           serial_number: udid,
@@ -131,7 +142,8 @@ module Mdq
                           platform: 'Android',
                           mac_address: mac_address,
                           ip_address: ip_address,
-                          ipv6_address: ipv6_address.join(',')
+                          ipv6_address: ipv6_address.join(','),
+                          wifi_network: wifi_network
                         })
 
         else
@@ -264,6 +276,7 @@ ActiveRecord::Migration.create_table :devices do |t|
   t.string :mac_address
   t.string :ip_address
   t.text :ipv6_address
+  t.string :wifi_network
 end
 
 ActiveRecord::Migration.create_table :apps do |t|

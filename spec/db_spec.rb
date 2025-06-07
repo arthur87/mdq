@@ -49,19 +49,26 @@ RSpec.describe Mdq::DB do # rubocop:disable Metrics/BlockLength
     )
 
     allow(db).to receive(:adb_command).with('shell ip addr show wlan0', 'ANDROID_UDID').and_return(
-      ['47: wlan0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000'],
-      ['link/ether ff:ff:ff:ff:ff:ff brd ff:ff:ff:ff:ff:ff'],
-      ['inet 192.168.1.1/24 brd 192.168.1.255 scope global wlan0'],
-      ['   valid_lft forever preferred_lft forever'],
-      ['inet6 IPV6_1/64 scope global temporary dynamic'],
-      ['   valid_lft 86356sec preferred_lft 71618sec'],
-      ['inet6 IPV6_2/64 scope global temporary deprecated dynamic'],
-      ['   valid_lft 86356sec preferred_lft 0sec'],
-      ['inet6 IPV6_3/64 scope global dynamic mngtmpaddr'],
-      ['   valid_lft 86356sec preferred_lft 86356sec'],
-      ['inet6 IPV6_3/64 scope link'],
-      ['   valid_lft forever preferred_lft forever'].join("\n")
+      ['47: wlan0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000',
+       'link/ether ff:ff:ff:ff:ff:ff brd ff:ff:ff:ff:ff:ff',
+       'inet 192.168.1.1/24 brd 192.168.1.255 scope global wlan0',
+       '   valid_lft forever preferred_lft forever',
+       'inet6 IPV6_1/64 scope global temporary dynamic',
+       '   valid_lft 86356sec preferred_lft 71618sec',
+       'inet6 IPV6_2/64 scope global temporary deprecated dynamic',
+       '   valid_lft 86356sec preferred_lft 0sec',
+       'inet6 IPV6_3/64 scope global dynamic mngtmpaddr',
+       '   valid_lft 86356sec preferred_lft 86356sec',
+       'inet6 IPV6_3/64 scope link',
+       '   valid_lft forever preferred_lft forever'].join("\n")
     )
+
+    allow(db).to receive(:adb_command).with("shell dumpsys netstats | grep -E 'iface=wlan0'",
+                                            'ANDROID_UDID').and_return(
+                                              ['iface=wlan0 ident=[{type=1, ratType=COMBINED, wifiNetworkKey="MyNet"wpa2-psk, metered=false, defaultNetwork=true, oemManaged=OEM_NONE, subId=-1}]', # rubocop:disable Layout/LineLength
+                                               'iface=wlan0 ident=[{type=1, ratType=COMBINED, wifiNetworkKey="MyNet"wpa2-psk, metered=false, defaultNetwork=true, oemManaged=OEM_NONE, subId=-1}]'] # rubocop:disable Layout/LineLength
+                                                                                        .join("\n")
+                                            )
 
     # Apple Devices
     allow(db).to receive(:apple_command).with("list devices -v -j #{file}").and_return(nil)
@@ -102,9 +109,10 @@ RSpec.describe Mdq::DB do # rubocop:disable Metrics/BlockLength
       "human_readable_total_disk": '109.91 GB',
       "human_readable_used_disk": '17.96 GB',
       "human_readable_available_disk": '91.95 GB',
-      "mac_address": nil,
-      "ip_address": nil,
-      "ipv6_address": ''
+      "mac_address": 'ff:ff:ff:ff:ff:ff',
+      "ip_address": '192.168.1.1',
+      "ipv6_address": 'IPV6_1,IPV6_2,IPV6_3,IPV6_3',
+      "wifi_network": 'MyNet'
     }, {
       "id": 2,
       "udid": 'APPLE_UDID',
@@ -126,7 +134,8 @@ RSpec.describe Mdq::DB do # rubocop:disable Metrics/BlockLength
       "human_readable_available_disk": nil,
       "mac_address": nil,
       "ip_address": nil,
-      "ipv6_address": nil
+      "ipv6_address": nil,
+      "wifi_network": nil
 
     }].to_json
 
