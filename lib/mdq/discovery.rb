@@ -7,7 +7,7 @@ require 'fileutils'
 # Mdq
 module Mdq
   # Discovery
-  class Discovery
+  class Discovery # rubocop:disable Metrics/ClassLength
     def initialize
       @home = FileUtils.mkdir_p([Dir.home, '.mdq'].join(File::Separator))
     end
@@ -53,17 +53,19 @@ module Mdq
     end
 
     # Androidデバイス一覧を取得する
-    def android_discover # rubocop:disable Metrics/AbcSize,Metrics/MethodLength
+    def android_discover # rubocop:disable Metrics/AbcSize,Metrics/MethodLength,Metrics/CyclomaticComplexity,Metrics/PerceivedComplexity
       output, = adb_command('devices -l')
       return if output.nil?
 
-      output.split("\n").each_with_index do |line, index|
-        next if index.zero?
+      k = 1024.0
 
-        columns = line.split
+      output.split("\n").each_with_index do |output_line, output_index| # rubocop:disable Metrics/BlockLength
+        next if output_index.zero?
+
+        columns = output_line.split
 
         udid = columns[0]
-        authorized = line.index('unauthorized').nil?
+        authorized = output_line.index('unauthorized').nil?
 
         if authorized
           model, = adb_command('shell getprop ro.product.model', udid)
@@ -74,6 +76,10 @@ module Mdq
           total_disk = nil
           available_disk = nil
           used_disk = nil
+          mac_address = nil
+          ip_address = nil
+          ipv6_address = []
+          wifi_network = nil
 
           # バッテリー
           lines1, = adb_command('shell dumpsys battery', udid)
@@ -83,15 +89,38 @@ module Mdq
 
           # ストレージ
           lines2, = adb_command('shell df', udid)
-          lines2.split("\n").each_with_index do |line2, index2|
-            next if index2.zero?
+          lines2.split("\n").each_with_index do |line, index|
+            next if index.zero?
 
-            columns = line2.split
+            columns = line.split
             next if columns[5].index('/data').nil?
 
-            total_disk = columns[1].to_f * 1000
-            available_disk = columns[3].to_f * 1000
+            total_disk = columns[1].to_f * k
+            available_disk = columns[3].to_f * k
             used_disk = total_disk - available_disk
+          end
+
+          # MACアドレスとIPアドレス
+          lines3, = adb_command('shell ip addr show wlan0', udid)
+          lines3.split("\n").each do |line|
+            match = line.match('link/ether (.*?) ')
+            mac_address = match[1] unless match.nil?
+
+            match = line.match('inet (.*?)/')
+            ip_address = match[1] unless match.nil?
+
+            match = line.match('inet6 (.*?)/')
+            ipv6_address << match[1] unless match.nil?
+          end
+
+          # Wi-Fi
+          lines4, = adb_command("shell dumpsys netstats | grep -E 'iface=wlan0'", udid)
+          lines4.split("\n").each do |line|
+            match = line.match(' wifiNetworkKey="(.*?)"')
+            next if match[1].nil?
+
+            wifi_network = match[1]
+            break
           end
 
           Device.create({
@@ -107,10 +136,14 @@ module Mdq
                           available_disk: available_disk,
                           used_disk: used_disk,
                           capacity: (used_disk / total_disk) * 100,
-                          human_readable_total_disk: number_to_human_size(total_disk),
-                          human_readable_available_disk: number_to_human_size(available_disk),
-                          human_readable_used_disk: number_to_human_size(used_disk),
-                          platform: 'Android'
+                          human_readable_total_disk: number_to_human_size(total_disk, k),
+                          human_readable_available_disk: number_to_human_size(available_disk, k),
+                          human_readable_used_disk: number_to_human_size(used_disk, k),
+                          platform: 'Android',
+                          mac_address: mac_address,
+                          ip_address: ip_address,
+                          ipv6_address: ipv6_address.join(','),
+                          wifi_network: wifi_network
                         })
 
         else
@@ -128,6 +161,7 @@ module Mdq
     def apple_discover
       file = [@home, 'mdq.json'].join(File::Separator)
       result = apple_command("list devices -v -j #{file}")
+      k = 1000.0
 
       return unless File.exist?(file)
 
@@ -147,7 +181,7 @@ module Mdq
                           build_version: device['deviceProperties']['osVersionNumber'],
                           build_id: device['deviceProperties']['osBuildUpdate'],
                           total_disk: total_disk,
-                          human_readable_total_disk: number_to_human_size(total_disk)
+                          human_readable_total_disk: number_to_human_size(total_disk, k)
                         })
         end
 
@@ -196,13 +230,13 @@ module Mdq
       ActiveRecord::Base.connection.execute("delete from sqlite_sequence where name='apps'")
     end
 
-    def number_to_human_size(size)
+    # バイト単位の数値を変換
+    def number_to_human_size(size, k) # rubocop:disable Naming/MethodParameterName
       return nil if size.nil?
 
       units = [' B', ' KB', ' MB', ' GB', ' TB']
 
       i = 0
-      k = 1000.0
       while size > k
         size /= k
         i += 1
@@ -239,6 +273,10 @@ ActiveRecord::Migration.create_table :devices do |t|
   t.string :human_readable_total_disk
   t.string :human_readable_used_disk
   t.string :human_readable_available_disk
+  t.string :mac_address
+  t.string :ip_address
+  t.text :ipv6_address
+  t.string :wifi_network
 end
 
 ActiveRecord::Migration.create_table :apps do |t|
