@@ -47,7 +47,10 @@ $ mdq list
     "capacity": 16,
     "human_readable_total_disk": "109.91 GB",
     "human_readable_used_disk": "17.96 GB",
-    "human_readable_available_disk": "91.95 GB"
+    "human_readable_available_disk": "91.95 GB",
+    "mac_address": null,
+    "ip_address": null,
+    "ipv6_address": null
   },
   {
     "id": 2,
@@ -67,7 +70,11 @@ $ mdq list
     "capacity": null,
     "human_readable_total_disk": "128.0 GB",
     "human_readable_used_disk": null,
-    "human_readable_available_disk": null
+    "human_readable_available_disk": null,
+    "mac_address": null,
+    "ip_address": null,
+    "ipv6_address": null
+
   }
 ]
 ```
@@ -95,7 +102,10 @@ $ mdq list -q="select * from devices where platform='iOS'"
     "capacity": null,
     "human_readable_total_disk": "128.0 GB",
     "human_readable_used_disk": null,
-    "human_readable_available_disk": null
+    "human_readable_available_disk": null,
+    "mac_address": null,
+    "ip_address": null,
+    "ipv6_address": null
   }
 ]
 ```
@@ -151,6 +161,10 @@ Details of the devices table.
 | human_readable_total_disk | total_disk | total_disk |
 | human_readable_available_disk | available_disk | Always "null" |
 | human_readable_used_disk | used_disk | Always "null" |
+| mac_address | MAC address (may be a random MAC address) | Always "null" |
+| ip_address | IPv4 Address | Always "null" |
+| ipv6_address | IPv6 Address |  Always "null" |
+
 
 Details of the apps table.
 Apple Devices displays the apps installed with Xcode.

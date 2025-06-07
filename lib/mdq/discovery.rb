@@ -53,19 +53,19 @@ module Mdq
     end
 
     # Androidデバイス一覧を取得する
-    def android_discover # rubocop:disable Metrics/AbcSize,Metrics/MethodLength
+    def android_discover # rubocop:disable Metrics/AbcSize,Metrics/MethodLength,Metrics/CyclomaticComplexity,Metrics/PerceivedComplexity
       output, = adb_command('devices -l')
       return if output.nil?
 
       k = 1024.0
 
-      output.split("\n").each_with_index do |line, index|
-        next if index.zero?
+      output.split("\n").each_with_index do |output_line, output_index|
+        next if output_index.zero?
 
-        columns = line.split
+        columns = output_line.split
 
         udid = columns[0]
-        authorized = line.index('unauthorized').nil?
+        authorized = output_line.index('unauthorized').nil?
 
         if authorized
           model, = adb_command('shell getprop ro.product.model', udid)
@@ -76,6 +76,9 @@ module Mdq
           total_disk = nil
           available_disk = nil
           used_disk = nil
+          mac_address = nil
+          ip_address = nil
+          ipv6_address = []
 
           # バッテリー
           lines1, = adb_command('shell dumpsys battery', udid)
@@ -85,15 +88,28 @@ module Mdq
 
           # ストレージ
           lines2, = adb_command('shell df', udid)
-          lines2.split("\n").each_with_index do |line2, index2|
-            next if index2.zero?
+          lines2.split("\n").each_with_index do |line, index|
+            next if index.zero?
 
-            columns = line2.split
+            columns = line.split
             next if columns[5].index('/data').nil?
 
             total_disk = columns[1].to_f * k
             available_disk = columns[3].to_f * k
             used_disk = total_disk - available_disk
+          end
+
+          # MACアドレスとIPアドレス
+          lines3, = adb_command('shell ip addr show wlan0', udid)
+          lines3.split("\n").each do |line|
+            match = line.match('link/ether (.*?) ')
+            mac_address = match[1] unless match.nil?
+
+            match = line.match('inet (.*?)/')
+            ip_address = match[1] unless match.nil?
+
+            match = line.match('inet6 (.*?)/')
+            ipv6_address << match[1] unless match.nil?
           end
 
           Device.create({
@@ -112,7 +128,10 @@ module Mdq
                           human_readable_total_disk: number_to_human_size(total_disk, k),
                           human_readable_available_disk: number_to_human_size(available_disk, k),
                           human_readable_used_disk: number_to_human_size(used_disk, k),
-                          platform: 'Android'
+                          platform: 'Android',
+                          mac_address: mac_address,
+                          ip_address: ip_address,
+                          ipv6_address: ipv6_address.join(',')
                         })
 
         else
@@ -242,6 +261,9 @@ ActiveRecord::Migration.create_table :devices do |t|
   t.string :human_readable_total_disk
   t.string :human_readable_used_disk
   t.string :human_readable_available_disk
+  t.string :mac_address
+  t.string :ip_address
+  t.text :ipv6_address
 end
 
 ActiveRecord::Migration.create_table :apps do |t|
