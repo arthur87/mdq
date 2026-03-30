@@ -28,8 +28,7 @@ module Mdq
     method_option :query, desc: 'SQL to filter devices', aliases: '-q'
     def list
       db = Mdq::DB.new
-      query = options['query']
-      models = db.get(query)
+      models = db.get(options['query'])
       puts(JSON.pretty_generate(models.as_json))
     end
 
@@ -38,8 +37,7 @@ module Mdq
     method_option :output, desc: 'Save to file', aliases: '-o'
     def cap
       db = Mdq::DB.new
-      query = options['query']
-      models = db.get(query)
+      models = db.get(options['query'])
 
       models.each do |device|
         db.device_screencap(options[:output], device.udid, device.android?)
@@ -51,8 +49,7 @@ module Mdq
     method_option :input, desc: 'Path to the app file', aliases: '-i'
     def install
       db = Mdq::DB.new
-      query = options['query']
-      models = db.get(query)
+      models = db.get(options['query'])
 
       models.each do |device|
         db.app_install(options[:input], device.udid, device.android?)
@@ -64,8 +61,7 @@ module Mdq
     method_option :input, desc: 'Path to the app file', aliases: '-i'
     def uninstall
       db = Mdq::DB.new
-      query = options['query']
-      models = db.get(query)
+      models = db.get(options['query'])
 
       models.each do |device|
         db.app_uninstall(options[:input], device.udid, device.android?)
