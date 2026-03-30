@@ -42,7 +42,7 @@ module Mdq
       models = db.get(query)
 
       models.each do |device|
-        db.device_screencap(options[:cap], device.udid, device.android?)
+        db.device_screencap(options[:output], device.udid, device.android?)
       end
     end
 
