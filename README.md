@@ -117,7 +117,7 @@ $ mdq list -q='select * from apps'
 Take a screenshot on Android.
 
 ```
-$ mdq cap -i='/Users/xxxxx/'
+$ mdq cap -o='/Users/xxxxx/'
 ```
 
 Install the app.
