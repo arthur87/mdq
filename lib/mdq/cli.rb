@@ -24,8 +24,22 @@ module Mdq
       puts "Xcode is installed: #{db.apple_discoverable?}"
     end
 
-    desc 'list', 'Show mobile devices'
-    method_option :query, desc: 'SQL to filter devices', aliases: '-q'
+    desc 'devices', 'Show mobile devices'
+    def devices
+      db = Mdq::DB.new
+      models = db.get(false)
+      puts(JSON.pretty_generate(models.as_json))
+    end
+
+    desc 'apps', 'Show mobile apps'
+    def apps
+      db = Mdq::DB.new
+      models = db.get('SELECT * FROM apps')
+      puts(JSON.pretty_generate(models.as_json))
+    end
+
+    desc 'list', 'Show mobile devices or apps'
+    method_option :query, desc: 'SQL to filter devices or apps', aliases: '-q'
     def list
       db = Mdq::DB.new
       models = db.get(options['query'])
