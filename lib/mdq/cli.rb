@@ -50,11 +50,12 @@ module Mdq
     method_option :query, desc: 'SQL to filter devices', aliases: '-q'
     method_option :output, desc: 'Save to file', aliases: '-o'
     def cap
+      ob = Mdq::OutputBuilder.new
       db = Mdq::DB.new
       models = db.get(options['query'])
 
       models.each do |device|
-        ob.add(db.device_screencap(options[:output], device.udid, device.android?))
+        ob.add(db.device_screencap(options[:output], device.udid, device.android?)) if device.android?
       end
 
       ob.print
