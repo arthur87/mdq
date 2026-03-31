@@ -22,6 +22,23 @@ Check the software installation status.
 $ mdq check
 ```
 
+## Devices
+
+Show mobile devices.
+
+```
+$ mdq devices
+```
+
+## Apss
+
+Show apps.
+
+```
+$ mdq apps
+```
+
+
 ## List
 
 It's easy to use.
