@@ -48,7 +48,7 @@ module Mdq
 
     desc 'cap', 'Path to save screenshots(Android only)'
     method_option :query, desc: 'SQL to filter devices', aliases: '-q'
-    method_option :output, desc: 'Save to file', aliases: '-o'
+    method_option :output, desc: 'Save to file', aliases: '-o', required: true
     def cap
       ob = Mdq::OutputBuilder.new
       db = Mdq::DB.new
