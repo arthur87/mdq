@@ -49,10 +49,16 @@ module Mdq
     end
 
     # Appをインストールする
-    def app_install(input, udid, is_android)
-      output, = adb_command("install #{input}", udid) if is_android && input.end_with?('.apk')
-      output, = apple_command("device install app #{input}", udid) if !is_android && input.end_with?('.ipa')
-
+    def app_install(input, udid, is_android, is_replace)
+      if is_android && input.end_with?('.apk')
+        if is_replace
+          output, = adb_command("install -r #{input}", udid)
+        else
+          output, = adb_command("install #{input}", udid)
+        end
+      elsif !is_android && input.end_with?('.ipa')
+        output, = apple_command("device install app #{input}", udid)
+      end
       { command: 'install', udid: udid, result: output }
     end
 

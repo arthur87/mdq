@@ -61,12 +61,14 @@ module Mdq
     desc 'install', 'Installing the app(apk, ipa)'
     method_option :query, desc: 'SQL to filter devices', aliases: '-q'
     method_option :input, desc: 'Path to the app file', aliases: '-i'
+    method_option :replace, desc: 'Replace the app if it is already installed', aliases: '-r', default: false,
+                            type: :boolean
     def install
       db = Mdq::DB.new
       models = db.get(options['query'])
 
       models.each do |device|
-        db.app_install(options[:input], device.udid, device.android?)
+        db.app_install(options[:input], device.udid, device.android?, options[:replace])
       end
     end
 
