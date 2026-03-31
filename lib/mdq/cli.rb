@@ -54,34 +54,47 @@ module Mdq
       models = db.get(options['query'])
 
       models.each do |device|
-        db.device_screencap(options[:output], device.udid, device.android?)
+        ob.add(db.device_screencap(options[:output], device.udid, device.android?))
       end
+
+      ob.print
     end
 
     desc 'install', 'Installing the app(apk, ipa)'
     method_option :query, desc: 'SQL to filter devices', aliases: '-q'
-    method_option :input, desc: 'Path to the app file', aliases: '-i'
+    method_option :input, desc: 'Path to the app file', aliases: '-i', required: true
     method_option :replace, desc: 'Replace the app if it is already installed', aliases: '-r', default: false,
                             type: :boolean
     def install
+      unless File.exist?(options[:input])
+        puts 'Invalid file format. Please provide an .apk or .ipa file.'
+        return
+      end
+
+      ob = Mdq::OutputBuilder.new
       db = Mdq::DB.new
       models = db.get(options['query'])
 
       models.each do |device|
-        db.app_install(options[:input], device.udid, device.android?, options[:replace])
+        ob.add(db.app_install(options[:input], device.udid, device.android?, options[:replace]))
       end
+
+      ob.print
     end
 
     desc 'uninstall', 'Uninstalling the app(apk, ipa)'
     method_option :query, desc: 'SQL to filter devices', aliases: '-q'
-    method_option :input, desc: 'Path to the app file', aliases: '-i'
+    method_option :input, desc: 'Path to the app file', aliases: '-i', required: true
     def uninstall
+      ob = Mdq::OutputBuilder.new
       db = Mdq::DB.new
       models = db.get(options['query'])
 
       models.each do |device|
-        db.app_uninstall(options[:input], device.udid, device.android?)
+        ob.add(db.app_uninstall(options[:input], device.udid, device.android?))
       end
+
+      ob.print
     end
   end
 end

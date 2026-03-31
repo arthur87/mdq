@@ -58,7 +58,10 @@ module Mdq
         end
       elsif !is_android && input.end_with?('.ipa')
         output, = apple_command("device install app #{input}", udid)
+      else
+        output = 'Invalid file format. Please provide an .apk file for Android or an .ipa file for iOS.'
       end
+
       { command: 'install', udid: udid, result: output }
     end
 
