@@ -17,6 +17,23 @@ Check the software installation status.
 $ mdq check
 ```
 
+## Devices
+
+Show mobile devices.
+
+```
+$ mdq devices
+```
+
+## Apss
+
+Show apps.
+
+```
+$ mdq apps
+```
+
+
 ## List
 
 It's easy to use.
@@ -117,20 +134,20 @@ $ mdq list -q='select * from apps'
 Take a screenshot on Android.
 
 ```
-$ mdq list --cap='/Users/xxxxx/'
+$ mdq cap -o='/Users/xxxxx/'
 ```
 
 Install the app.
 
 ```
-$ mdq list --install='/Users/xxxxx/example.apk'
-$ mdq list --install='/Users/xxxxx/example.ipa'
+$ mdq install -i='/Users/xxxxx/example.apk'
+$ mdq install -i=='/Users/xxxxx/example.ipa'
 ```
 
 Uninstall the app.
 
 ```
-$ mdq list --uninstall='com.example.app'
+$ mdq uninstall -i='com.example.app'
 ```
 
 
