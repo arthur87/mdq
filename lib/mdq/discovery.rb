@@ -135,7 +135,7 @@ module Mdq
                           total_disk: total_disk,
                           available_disk: available_disk,
                           used_disk: used_disk,
-                          capacity: (used_disk / total_disk) * 100,
+                          capacity: (used_disk.to_f / total_disk.to_f) * 100,
                           human_readable_total_disk: number_to_human_size(total_disk, k),
                           human_readable_available_disk: number_to_human_size(available_disk, k),
                           human_readable_used_disk: number_to_human_size(used_disk, k),
