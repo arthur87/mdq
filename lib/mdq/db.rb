@@ -40,12 +40,13 @@ module Mdq
       return unless is_android
 
       FileUtils.mkdir_p(output)
-      file = "/sdcard/#{udid}.png"
-      adb_command("shell screencap -p #{file}", udid)
-      adb_command("pull #{file} #{output}", udid)
-      adb_command("adb shell rm #{file}")
+      file = "#{udid}_#{Time.now.to_i}.png"
+      full_path = "/sdcard/#{file}"
+      adb_command("shell screencap -p #{full_path}", udid)
+      adb_command("pull #{full_path} #{output}", udid)
+      adb_command("shell rm #{full_path}", udid)
 
-      { command: 'cap', udid: udid, result: nil }
+      { command: 'cap', udid: udid, result: "#{output}/#{file}" }
     end
 
     # Appをインストールする
