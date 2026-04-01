@@ -37,7 +37,10 @@ module Mdq
     # Androidデバイスのスクリーンショットを撮る
     def device_screencap(output, udid)
       device = Device.find_by(udid: udid)
-      return if device.nil? || !device.android?
+      if device.nil? || !device.android?
+        puts 'Device not found or not an Android device.'
+        return
+      end
 
       FileUtils.mkdir_p(output)
       file = "#{udid}-#{Time.now.strftime('%y%m%d-%H%M%S')}.png"
@@ -45,42 +48,48 @@ module Mdq
       adb_command("shell screencap -p #{full_path}", udid)
       adb_command("pull #{full_path} #{output}", udid)
       adb_command("shell rm #{full_path}", udid)
-
-      { command: 'cap', udid: udid, result: "#{output}/#{file}" }
     end
 
     # Appをインストールする
     def app_install(input, udid, is_replace)
+      file_error_message = 'Invalid file format. Please provide an .apk file for Android or an .ipa file for iOS.'
+      unless File.exist?(input)
+        puts file_error_message
+        return
+      end
+
       device = Device.find_by(udid: udid)
-      return if device.nil?
+      if device.nil?
+        puts 'Device not found.'
+        return
+      end
 
       if device.android? && input.end_with?('.apk')
         if is_replace
-          output, = adb_command("install -r #{input}", udid)
+          adb_command("install -r #{input}", udid)
         else
-          output, = adb_command("install #{input}", udid)
+          adb_command("install #{input}", udid)
         end
       elsif !device.android? && input.end_with?('.ipa')
-        output, = apple_command("device install app #{input}", udid)
+        apple_command("device install app #{input}", udid)
       else
-        output = 'Invalid file format. Please provide an .apk file for Android or an .ipa file for iOS.'
+        puts file_error_message
       end
-
-      { command: 'install', udid: udid, result: output }
     end
 
     # Appをアンインストールする
     def app_uninstall(input, udid)
       device = Device.find_by(udid: udid)
-      return if device.nil?
-
-      if device.android?
-        output, = adb_command("uninstall #{input}", udid)
-      else
-        output, = apple_command("device uninstall app #{input}", udid)
+      if device.nil?
+        puts 'Device not found.'
+        return
       end
 
-      { command: 'uninstall', udid: udid, result: output }
+      if device.android?
+        adb_command("uninstall #{input}", udid)
+      else
+        apple_command("device uninstall app #{input}", udid)
+      end
     end
   end
 end

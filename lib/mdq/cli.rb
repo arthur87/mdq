@@ -70,11 +70,6 @@ module Mdq
     method_option :replace, desc: 'Replace the app if it is already installed', aliases: '-r', default: false,
                             type: :boolean
     def install
-      unless File.exist?(options[:input])
-        puts 'Invalid file format. Please provide an .apk or .ipa file.'
-        return
-      end
-
       db = Mdq::DB.new
       db.get(is_apps: false)
       db.app_install(options[:input], options[:udid], options[:replace])
