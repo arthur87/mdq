@@ -8,39 +8,39 @@ require 'fileutils'
 module Mdq
   # DB
   class DB < Discovery
-    # クエリの実行
-    def get(sql)
+    # デバイスとアプリの取得
+    def get(is_android: true, is_apple: true, is_apps: true)
       reset
       # デバイスの発見
-      android_discover
-      apple_discover
+      android_discover if is_android
+      apple_discover if is_apple
 
-      if sql
-        Device.all.each do |model|
-          # インストール済みAppの取得
-          if model.android?
-            android_apps(model.udid)
-          else
-            apple_apps(model.udid)
-          end
-        end
+      return unless is_apps
 
-        begin
-          ActiveRecord::Base.connection.execute(sql)
-        rescue StandardError => e
-          { result: e }
+      Device.all.each do |model|
+        # インストール済みAppの取得
+        if model.android?
+          android_apps(model.udid)
+        else
+          apple_apps(model.udid)
         end
-      else
-        Device.all
       end
     end
 
+    # クエリの実行
+    def query(sql)
+      ActiveRecord::Base.connection.execute(sql)
+    rescue StandardError
+      []
+    end
+
     # Androidデバイスのスクリーンショットを撮る
-    def device_screencap(output, udid, is_android)
-      return unless is_android
+    def device_screencap(output, udid)
+      device = Device.find_by(udid: udid)
+      return if device.nil? || !device.android?
 
       FileUtils.mkdir_p(output)
-      file = "#{udid}_#{Time.now.to_i}.png"
+      file = "#{udid}-#{Time.now.strftime('%y%m%d-%H%M%S')}.png"
       full_path = "/sdcard/#{file}"
       adb_command("shell screencap -p #{full_path}", udid)
       adb_command("pull #{full_path} #{output}", udid)
@@ -50,14 +50,17 @@ module Mdq
     end
 
     # Appをインストールする
-    def app_install(input, udid, is_android, is_replace)
-      if is_android && input.end_with?('.apk')
+    def app_install(input, udid, is_replace)
+      device = Device.find_by(udid: udid)
+      return if device.nil?
+
+      if device.android? && input.end_with?('.apk')
         if is_replace
           output, = adb_command("install -r #{input}", udid)
         else
           output, = adb_command("install #{input}", udid)
         end
-      elsif !is_android && input.end_with?('.ipa')
+      elsif !device.android? && input.end_with?('.ipa')
         output, = apple_command("device install app #{input}", udid)
       else
         output = 'Invalid file format. Please provide an .apk file for Android or an .ipa file for iOS.'
@@ -67,8 +70,11 @@ module Mdq
     end
 
     # Appをアンインストールする
-    def app_uninstall(input, udid, is_android)
-      if is_android
+    def app_uninstall(input, udid)
+      device = Device.find_by(udid: udid)
+      return if device.nil?
+
+      if device.android?
         output, = adb_command("uninstall #{input}", udid)
       else
         output, = apple_command("device uninstall app #{input}", udid)

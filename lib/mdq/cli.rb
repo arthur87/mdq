@@ -25,44 +25,47 @@ module Mdq
     end
 
     desc 'devices', 'Show mobile devices'
+    method_option :android, desc: 'Show Android devices', default: true,
+                            type: :boolean
+    method_option :apple, desc: 'Show Apple devices', default: true,
+                          type: :boolean
     def devices
       db = Mdq::DB.new
-      models = db.get(false)
-      puts(JSON.pretty_generate(models.as_json))
+      db.get(is_android: options[:android], is_apple: options[:apple], is_apps: false)
+      puts(JSON.pretty_generate(Device.all.as_json))
     end
 
     desc 'apps', 'Show mobile apps'
+    method_option :android, desc: 'Show Android devices', default: true,
+                            type: :boolean
+    method_option :apple, desc: 'Show Apple devices', default: true,
+                          type: :boolean
     def apps
       db = Mdq::DB.new
-      models = db.get('SELECT * FROM apps')
-      puts(JSON.pretty_generate(models.as_json))
+      db.get(is_android: options[:android], is_apple: options[:apple])
+      puts(JSON.pretty_generate(App.all.as_json))
     end
 
     desc 'list', 'Show mobile devices or apps'
     method_option :query, desc: 'SQL to filter devices or apps', aliases: '-q'
     def list
       db = Mdq::DB.new
-      models = db.get(options['query'])
-      puts(JSON.pretty_generate(models.as_json))
+      db.get
+      result = db.query(options['query'])
+      puts(JSON.pretty_generate(result.as_json))
     end
 
     desc 'cap', 'Path to save screenshots(Android only)'
-    method_option :query, desc: 'SQL to filter devices', aliases: '-q'
+    method_option :udid, desc: 'Specify the device UDID', aliases: '-u', required: true
     method_option :output, desc: 'Save to file', aliases: '-o', required: true
     def cap
-      ob = Mdq::OutputBuilder.new
       db = Mdq::DB.new
-      models = db.get(options['query'])
-
-      models.each do |device|
-        ob.add(db.device_screencap(options[:output], device.udid, device.android?)) if device.android?
-      end
-
-      ob.print
+      db.get(is_apps: false)
+      db.device_screencap(options[:output], options[:udid])
     end
 
     desc 'install', 'Installing the app(apk, ipa)'
-    method_option :query, desc: 'SQL to filter devices', aliases: '-q'
+    method_option :udid, desc: 'Specify the device UDID', aliases: '-u', required: true
     method_option :input, desc: 'Path to the app file', aliases: '-i', required: true
     method_option :replace, desc: 'Replace the app if it is already installed', aliases: '-r', default: false,
                             type: :boolean
@@ -72,30 +75,18 @@ module Mdq
         return
       end
 
-      ob = Mdq::OutputBuilder.new
       db = Mdq::DB.new
-      models = db.get(options['query'])
-
-      models.each do |device|
-        ob.add(db.app_install(options[:input], device.udid, device.android?, options[:replace]))
-      end
-
-      ob.print
+      db.get(is_apps: false)
+      db.app_install(options[:input], options[:udid], options[:replace])
     end
 
     desc 'uninstall', 'Uninstalling the app(apk, ipa)'
-    method_option :query, desc: 'SQL to filter devices', aliases: '-q'
+    method_option :udid, desc: 'Specify the device UDID', aliases: '-u', required: true
     method_option :input, desc: 'Path to the app file', aliases: '-i', required: true
     def uninstall
-      ob = Mdq::OutputBuilder.new
       db = Mdq::DB.new
-      models = db.get(options['query'])
-
-      models.each do |device|
-        ob.add(db.app_uninstall(options[:input], device.udid, device.android?))
-      end
-
-      ob.print
+      db.get(is_apps: false)
+      db.app_uninstall(options[:input], options[:udid])
     end
   end
 end

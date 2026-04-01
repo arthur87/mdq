@@ -134,20 +134,20 @@ $ mdq list -q='select * from apps'
 Take a screenshot on Android.
 
 ```
-$ mdq cap -o='/Users/xxxxx/'
+$ mdq cap -o='/Users/xxxxx/' -u='UDID'
 ```
 
 Install the app.
 
 ```
-$ mdq install -i='/Users/xxxxx/example.apk'
-$ mdq install -i=='/Users/xxxxx/example.ipa'
+$ mdq install -i='/Users/xxxxx/example.apk' -u='UDID'
+$ mdq install -i=='/Users/xxxxx/example.ipa' -u='UDID'
 ```
 
 Uninstall the app.
 
 ```
-$ mdq uninstall -i='com.example.app'
+$ mdq uninstall -i='com.example.app' -u='UDID'
 ```
 
 
