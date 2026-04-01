@@ -146,7 +146,7 @@ RSpec.describe Mdq::DB do # rubocop:disable Metrics/BlockLength
     FileUtils.cp([__dir__, 'mdq.json'].join(File::Separator), file)
     FileUtils.cp([__dir__, 'mdq-apps.json'].join(File::Separator), apps_file)
 
-    db.send(:get, 'select * from apps')
+    db.send(:get, is_apps: true)
     apps = App.all
     test_apps = [
       { "id": 1, "udid": 'ANDROID_UDID', "name": nil, "package_name": 'com.example.android1', "version": nil },
