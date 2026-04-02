@@ -23,23 +23,6 @@ Show mobile devices.
 
 ```
 $ mdq devices
-```
-
-## Apss
-
-Show apps.
-
-```
-$ mdq apps
-```
-
-
-## List
-
-It's easy to use.
-
-```
-$ mdq list
 [
   {
     "id": 1,
@@ -91,6 +74,17 @@ $ mdq list
   }
 ]
 ```
+
+## Apss
+
+Show apps.
+
+```
+$ mdq apps
+```
+
+
+## List
 
 You can filter using SQL.
 
