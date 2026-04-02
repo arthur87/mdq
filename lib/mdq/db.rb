@@ -38,7 +38,7 @@ module Mdq
     def device_screencap(output, udid)
       device = Device.find_by(udid: udid)
       if device.nil? || !device.android?
-        puts 'Device not found or not an Android device.'
+        warn 'Device not found or not an Android device.'
         return
       end
 
@@ -52,44 +52,42 @@ module Mdq
 
     # Appをインストールする
     def app_install(input, udid, is_replace)
-      file_error_message = 'Invalid file format. Please provide an .apk file for Android or an .ipa file for iOS.'
-      unless File.exist?(input)
-        puts file_error_message
-        return
-      end
-
       device = Device.find_by(udid: udid)
       if device.nil?
-        puts 'Device not found.'
+        warn 'Device not found.'
         return
       end
 
-      if device.android? && input.end_with?('.apk')
+      if device.android?
         if is_replace
-          adb_command("install -r #{input}", udid)
+          output, error = adb_command("install -r #{input}", udid)
         else
-          adb_command("install #{input}", udid)
+          output, error = adb_command("install #{input}", udid)
         end
-      elsif !device.android? && input.end_with?('.ipa')
-        apple_command("device install app #{input}", udid)
       else
-        puts file_error_message
+        output, error = apple_command("device install app #{input}", udid)
       end
+
+      puts output unless output.empty?
+      warn error unless error.empty?
     end
 
     # Appをアンインストールする
     def app_uninstall(input, udid)
       device = Device.find_by(udid: udid)
       if device.nil?
-        puts 'Device not found.'
+        warn 'Device not found.'
         return
       end
 
       if device.android?
-        adb_command("uninstall #{input}", udid)
+        output, error = adb_command("uninstall #{input}", udid)
       else
-        apple_command("device uninstall app #{input}", udid)
+        output, error = apple_command("device uninstall app #{input}", udid)
       end
+
+      puts output unless output.empty?
+      warn error unless error.empty?
     end
   end
 end

@@ -47,7 +47,7 @@ module Mdq
     end
 
     desc 'list', 'Show mobile devices or apps'
-    method_option :query, desc: 'SQL to filter devices or apps', aliases: '-q'
+    method_option :query, desc: 'SQL to filter devices or apps', aliases: '-q', required: true
     def list
       db = Mdq::DB.new
       db.get
@@ -64,7 +64,7 @@ module Mdq
       db.device_screencap(options[:output], options[:udid])
     end
 
-    desc 'install', 'Installing the app(apk, ipa)'
+    desc 'install', 'Installing the app(apk, apex, ipa)'
     method_option :udid, desc: 'Specify the device UDID', aliases: '-u', required: true
     method_option :input, desc: 'Path to the app file', aliases: '-i', required: true
     method_option :replace, desc: 'Replace the app if it is already installed', aliases: '-r', default: false,
@@ -75,9 +75,9 @@ module Mdq
       db.app_install(options[:input], options[:udid], options[:replace])
     end
 
-    desc 'uninstall', 'Uninstalling the app(apk, ipa)'
+    desc 'uninstall', 'Uninstalling the app'
     method_option :udid, desc: 'Specify the device UDID', aliases: '-u', required: true
-    method_option :input, desc: 'Path to the app file', aliases: '-i', required: true
+    method_option :input, desc: 'Path to the app', aliases: '-i', required: true
     def uninstall
       db = Mdq::DB.new
       db.get(is_apps: false)
