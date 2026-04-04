@@ -52,6 +52,17 @@ module Mdq
       end
     end
 
+    # simctlコマンド
+    def apple_sim_command(arg)
+      command = "xcrun simctl #{arg}"
+
+      begin
+        Open3.capture3(command)
+      rescue StandardError
+        nil
+      end
+    end
+
     # Androidデバイス一覧を取得する
     def android_discover # rubocop:disable Metrics/AbcSize,Metrics/MethodLength,Metrics/CyclomaticComplexity,Metrics/PerceivedComplexity
       output, = adb_command('devices -l')

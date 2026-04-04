@@ -50,6 +50,17 @@ module Mdq
       adb_command("shell rm #{full_path}", udid)
     end
 
+    def sim_screencap(output, is_android: true)
+      if is_android
+        output, error = adb_command("emu screenrecord #{output}}")
+      else
+        output, error = apple_sim_command("io booted screenshot #{output}")
+      end
+
+      puts output unless output.empty?
+      warn error unless error.empty?
+    end
+
     # Appをインストールする
     def app_install(input, udid, is_replace)
       device = Device.find_by(udid: udid)
