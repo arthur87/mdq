@@ -64,6 +64,15 @@ module Mdq
       db.device_screencap(options[:output], options[:udid])
     end
 
+    desc 'simcap', 'Take a screenshot of the simulator.'
+    method_option :android, desc: 'Android emulator screenshot file name'
+    method_option :apple, desc: 'Apple simulator screenshot file name'
+    def simcap
+      db = Mdq::DB.new
+      db.sim_screencap(options[:android], is_android: true) if options[:android]
+      db.sim_screencap(options[:apple], is_android: false) if options[:apple]
+    end
+
     desc 'install', 'Installing the app(apk, apex, ipa)'
     method_option :udid, desc: 'Specify the device UDID', aliases: '-u', required: true
     method_option :input, desc: 'Path to the app file', aliases: '-i', required: true
