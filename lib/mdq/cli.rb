@@ -92,5 +92,10 @@ module Mdq
       db.get(is_apps: false)
       db.app_uninstall(options[:input], options[:udid])
     end
+
+    def help
+      super
+      puts 'Online documentation: https://github.com/arthur87/mdq'
+    end
   end
 end
