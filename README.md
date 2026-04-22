@@ -125,11 +125,25 @@ Apple Devices displays the apps installed with Xcode.
 $ mdq list -q='select * from apps'
 ```
 
+## Screenshot of a physical device
+
 Take a screenshot on Android.
 
 ```
 $ mdq cap -o='/Users/xxxxx/' -u='UDID'
 ```
+
+
+## Screenshot of a simulator
+
+Take a screenshot of the simulator.
+Start the Android emulator or Apple simulator beforehand.
+
+```
+$ mdq simcap --android='/Users/xxxxx/android.png' --apple='/Users/xxxxx/apple.png'
+```
+
+## Install the app
 
 Install the app.
 
@@ -138,12 +152,13 @@ $ mdq install -i='/Users/xxxxx/example.apk' -u='UDID'
 $ mdq install -i=='/Users/xxxxx/example.ipa' -u='UDID'
 ```
 
+## Unistall the app
+
 Uninstall the app.
 
 ```
 $ mdq uninstall -i='com.example.app' -u='UDID'
 ```
-
 
 
 # Specification
