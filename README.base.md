@@ -144,16 +144,27 @@ $ mdq cap -o='/Users/xxxxx/' -u='UDID'
 Take a screenshot of the simulator.
 Start the Android emulator or Apple simulator beforehand.
 
+### Android
 ```
-$ mdq simcap --android='/Users/xxxxx/android.png' --apple='/Users/xxxxx/apple.png'
+$ mdq simcap -o='/Users/xxxxx/' -p=android
+```
+
+### Apple
+```
+$ mdq simcap -o='/Users/xxxxx/' -p=apple
 ```
 
 ## Install the app
 
 Install the app.
 
+### Android
 ```
 $ mdq install -i='/Users/xxxxx/example.apk' -u='UDID'
+```
+
+### Apple
+```
 $ mdq install -i=='/Users/xxxxx/example.ipa' -u='UDID'
 ```
 
