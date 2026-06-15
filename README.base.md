@@ -22,6 +22,21 @@ Check the software installation status.
 $ mdq check
 ```
 
+The following versions have been tested and confirmed to work.
+
+```
+$ adb --version
+Android Debug Bridge version 1.0.41
+Version 35.0.1-11580240
+Installed as /opt/homebrew/bin/adb
+Running on Darwin 25.5.0 (arm64)
+```
+
+```
+$ xcrun --version
+xcrun version 72.
+```
+
 ## Devices
 
 Show mobile devices.
@@ -38,6 +53,7 @@ $ mdq devices
     "platform": "Android",
     "marketing_name": null,
     "model": "Pixel 7",
+    "physical", true,
     "build_version": "16",
     "build_id": "BP31.250502.008",
     "battery_level": 88,
@@ -62,6 +78,7 @@ $ mdq devices
     "platform": "iOS",
     "marketing_name": "iPhone 16 Pro",
     "model": "iPhone17,1",
+    "physical", true,
     "build_version": "18.4.1",
     "build_id": "22E252",
     "battery_level": null,
@@ -105,6 +122,7 @@ $ mdq list -q="select * from devices where platform='iOS'"
     "platform": "iOS",
     "marketing_name": "iPhone 16 Pro",
     "model": "iPhone17,1",
+    "physical", true,
     "build_version": "18.4.1",
     "build_id": "22E252",
     "battery_level": null,
@@ -132,7 +150,8 @@ $ mdq list -q='select * from apps'
 
 ## Screenshot of a physical device
 
-Take a screenshot on Android.
+Take a screenshot of the physical device.
+For Apple devices, the physical column should be true.
 
 ```
 $ mdq cap -o='/Users/xxxxx/' -u='UDID'
@@ -190,6 +209,7 @@ Details of the devices table.
 | platform | Always "Android" | hardwareProperties.platform |
 | marketing_name | Always "null" | hardwareProperties.marketingName |
 | model | ro.product.model | hardwareProperties.productType |
+| physical | Always true | hardwareProperties.reality |
 | build_version | ro.build.version.release | deviceProperties.osVersionNumber |
 | build_id | ro.build.id | deviceProperties.osBuildUpdate | 
 | battery_level | battery | Always "null" |

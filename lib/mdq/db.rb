@@ -36,18 +36,23 @@ module Mdq
 
     # Androidデバイスのスクリーンショットを撮る
     def device_screencap(output, udid)
-      device = Device.find_by(udid: udid)
-      if device.nil? || !device.android?
-        warn 'Device not found or not an Android device.'
+      device = Device.find_by(udid: udid, physical: true)
+      if device.nil?
+        warn 'Device not found.'
         return
       end
 
       FileUtils.mkdir_p(output)
       file = "#{udid}-#{Time.now.strftime('%y%m%d-%H%M%S')}.png"
-      full_path = "/sdcard/#{file}"
-      adb_command("shell screencap -p #{full_path}", udid)
-      adb_command("pull #{full_path} #{output}", udid)
-      adb_command("shell rm #{full_path}", udid)
+
+      if device.android?
+        full_path = "/sdcard/#{file}"
+        adb_command("shell screencap -p #{full_path}", udid)
+        adb_command("pull #{full_path} #{output}", udid)
+        adb_command("shell rm #{full_path}", udid)
+      else
+        apple_command("device capture screenshot --destination #{output}/#{file}", udid)
+      end
     end
 
     def sim_screencap(output, is_android: true)

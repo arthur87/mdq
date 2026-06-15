@@ -154,7 +154,8 @@ module Mdq
                           mac_address: mac_address,
                           ip_address: ip_address,
                           ipv6_address: ipv6_address.join(','),
-                          wifi_network: wifi_network
+                          wifi_network: wifi_network,
+                          physical: true
                         })
 
         else
@@ -162,7 +163,8 @@ module Mdq
                           udid: udid,
                           serial_number: udid,
                           authorized: false,
-                          platform: 'Android'
+                          platform: 'Android',
+                          physical: true
                         })
         end
       end
@@ -181,6 +183,16 @@ module Mdq
         result['result']['devices'].each do |device|
           udid = device['hardwareProperties']['udid']
           total_disk = device['hardwareProperties']['internalStorageCapacity']
+
+          # 物理デバイスかどうか
+          # 判定できないときはnilにする
+          reality = device['hardwareProperties']['reality']
+          physical = if reality.nil?
+                       nil
+                     else
+                       reality == 'physical'
+                     end
+
           Device.create({
                           udid: udid,
                           serial_number: device['hardwareProperties']['serialNumber'],
@@ -192,7 +204,8 @@ module Mdq
                           build_version: device['deviceProperties']['osVersionNumber'],
                           build_id: device['deviceProperties']['osBuildUpdate'],
                           total_disk: total_disk,
-                          human_readable_total_disk: number_to_human_size(total_disk, k)
+                          human_readable_total_disk: number_to_human_size(total_disk, k),
+                          physical: physical
                         })
         end
 
@@ -274,6 +287,7 @@ ActiveRecord::Migration.create_table :devices do |t|
   t.string :platform
   t.string :marketing_name
   t.string :model
+  t.boolean :physical
   t.string :build_version
   t.string :build_id
   t.integer :battery_level
