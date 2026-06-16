@@ -47,10 +47,14 @@ module Mdq
     end
 
     desc 'list', 'Show mobile devices or apps.'
+    method_option :android, desc: 'Show Android devices', default: true,
+                            type: :boolean
+    method_option :apple, desc: 'Show Apple devices', default: true,
+                          type: :boolean
     method_option :query, desc: 'SQL to filter devices or apps', aliases: '-q', required: true
     def list
       db = Mdq::DB.new
-      db.get
+      db.get(is_android: options[:android], is_apple: options[:apple])
       result = db.query(options['query'])
       puts(JSON.pretty_generate(result.as_json))
     end
