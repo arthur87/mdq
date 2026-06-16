@@ -35,23 +35,33 @@ module Mdq
     end
 
     # Androidデバイスのスクリーンショットを撮る
-    def device_screencap(output, udid)
-      device = Device.find_by(udid: udid, physical: true)
-      if device.nil?
+    def device_screencap(output, udid = nil)
+      devices = if udid.nil?
+                  Device.where(physical: true)
+                else
+                  Device
+                    .where('udid LIKE ?', "#{udid}%")
+                    .where(physical: true)
+                end
+
+      if devices.empty?
         warn 'Device not found.'
         return
       end
 
       FileUtils.mkdir_p(output)
-      file = "#{udid}-#{Time.now.strftime('%y%m%d-%H%M%S')}.png"
 
-      if device.android?
-        full_path = "/sdcard/#{file}"
-        adb_command("shell screencap -p #{full_path}", udid)
-        adb_command("pull #{full_path} #{output}", udid)
-        adb_command("shell rm #{full_path}", udid)
-      else
-        apple_command("device capture screenshot --destination #{output}/#{file}", udid)
+      devices.each do |device|
+        file = "#{device.udid}-#{Time.now.strftime('%y%m%d-%H%M%S')}.png"
+
+        if device.android?
+          full_path = "/sdcard/#{file}"
+          adb_command("shell screencap -p #{full_path}", device.udid)
+          adb_command("pull #{full_path} #{output}", device.udid)
+          adb_command("shell rm #{full_path}", device.udid)
+        else
+          apple_command("device capture screenshot --destination #{output}/#{file}", device.udid)
+        end
       end
     end
 

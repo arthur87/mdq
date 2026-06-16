@@ -60,7 +60,7 @@ module Mdq
     end
 
     desc 'cap', 'Path to save screenshots of the physical device.'
-    method_option :udid, desc: 'Specify the device UDID', aliases: '-u', required: true
+    method_option :udid, desc: 'Specify the device UDID', aliases: '-u'
     method_option :output, desc: 'Save to file', aliases: '-o', required: true
     def cap
       db = Mdq::DB.new
