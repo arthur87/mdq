@@ -38,6 +38,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rubocop'
   spec.add_dependency 'activerecord'
   spec.add_dependency 'sqlite3'
+  spec.add_dependency 'sql-parser'
   spec.add_dependency 'thor'
 
   # For more information and examples about making a new gem, check out our

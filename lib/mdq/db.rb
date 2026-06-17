@@ -3,6 +3,7 @@
 require 'mdq'
 require 'active_record'
 require 'fileutils'
+require 'sql-parser'
 
 # Mdq
 module Mdq
@@ -114,6 +115,32 @@ module Mdq
 
       puts output unless output.empty?
       warn error unless error.empty?
+    end
+
+    # クエリにappsテーブルが含まれているかを判定する
+    def query_contains_apps_table?(query)
+      parser = SQLParser::Parser.new
+      ast = parser.scan_str(query)
+      find_tables(ast).uniq.include?('apps')
+    rescue StandardError
+      false
+    end
+
+    private
+
+    def find_tables(node)
+      tables = []
+      if node.is_a?(SQLParser::Statement::Table)
+        tables << node.name
+      elsif node.respond_to?(:each)
+        node.each { |child| tables += find_tables(child) }
+      elsif node.instance_variables.any?
+        node.instance_variables.each do |var|
+          val = node.instance_variable_get(var)
+          tables += find_tables(val)
+        end
+      end
+      tables
     end
   end
 end
