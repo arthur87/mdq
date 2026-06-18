@@ -56,8 +56,13 @@ module Mdq
       db = Mdq::DB.new
       is_apps = db.query_contains_apps_table?(options[:query])
       db.get(is_android: options[:android], is_apple: options[:apple], is_apps: is_apps)
-      result = db.query(options['query'])
-      puts(JSON.pretty_generate(result.as_json))
+
+      begin
+        result = db.query(options['query'])
+        puts(JSON.pretty_generate(result.as_json))
+      rescue StandardError => e
+        warn e.message
+      end
     end
 
     desc 'cap', 'Path to save screenshots of the physical device.'

@@ -31,8 +31,8 @@ module Mdq
     # クエリの実行
     def query(sql)
       ActiveRecord::Base.connection.execute(sql)
-    rescue StandardError
-      []
+    rescue StandardError => e
+      raise e
     end
 
     # Androidデバイスのスクリーンショットを撮る
