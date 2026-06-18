@@ -160,4 +160,12 @@ RSpec.describe Mdq::DB do # rubocop:disable Metrics/BlockLength
 
     expect(apps.to_json).to eq test_apps
   end
+
+  it 'query_contains_apps_table?' do
+    expect(db.send(:query_contains_apps_table?, 'SELECT * FROM apps')).to be true
+    expect(db.send(:query_contains_apps_table?,
+                   'SELECT * FROM devices INNER JOIN apps ON devices.udid = apps.udid')).to be true
+    expect(db.send(:query_contains_apps_table?, 'SELECT * FROM devices')).to be false
+    expect(db.send(:query_contains_apps_table?, 'SELECT * FROM')).to be false
+  end
 end
