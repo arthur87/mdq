@@ -65,7 +65,7 @@ module Mdq
 
     # Androidデバイス一覧を取得する
     def android_discover(is_physical = true) # rubocop:disable Metrics/AbcSize,Metrics/MethodLength,Metrics/CyclomaticComplexity,Metrics/PerceivedComplexity,Style/OptionalBooleanParameter
-      return unless is_physical
+      return if skip_device?(true, is_physical, false)
 
       output, = adb_command('devices -l')
       return if output.nil?
@@ -195,7 +195,7 @@ module Mdq
                        reality == 'physical'
                      end
 
-          next unless (physical && is_physical) || (!physical && is_simulated)
+          next if skip_device?(physical, is_physical, is_simulated)
 
           Device.create({
                           udid: udid,
@@ -271,6 +271,14 @@ module Mdq
       end
 
       "#{(size * 100).round / 100.0}#{units[i]}"
+    end
+
+    # デバイスの物理/シミュレートのフラグをスキップするかどうか
+    # 物理デバイスの場合: is_physical が true ならスキップしない（false）、false ならスキップする（true）。
+    # シミュレータの場合: is_simulated が true ならスキップしない（false）、false ならスキップする（true）。
+    # 判定不能（nil）の場合: シミュレータとして扱い、is_simulated の設定に従う。
+    def skip_device?(physical, is_physical, is_simulated)
+      !((physical && is_physical) || (!physical && is_simulated))
     end
   end
 end
