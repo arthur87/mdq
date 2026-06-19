@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    mdq (1.5.0)
+    mdq (1.5.1)
       activerecord
       sql-parser
       sqlite3

@@ -64,7 +64,9 @@ module Mdq
     end
 
     # Androidデバイス一覧を取得する
-    def android_discover # rubocop:disable Metrics/AbcSize,Metrics/MethodLength,Metrics/CyclomaticComplexity,Metrics/PerceivedComplexity
+    def android_discover(is_physical = true) # rubocop:disable Metrics/AbcSize,Metrics/MethodLength,Metrics/CyclomaticComplexity,Metrics/PerceivedComplexity,Style/OptionalBooleanParameter
+      return unless is_physical
+
       output, = adb_command('devices -l')
       return if output.nil?
 
@@ -171,7 +173,7 @@ module Mdq
     end
 
     # Appleデバイス一覧を取得する
-    def apple_discover
+    def apple_discover(is_physical = true, is_simulated = true) # rubocop:disable Style/OptionalBooleanParameter
       file = [@home, 'mdq.json'].join(File::Separator)
       result = apple_command("list devices -v -j #{file}")
       k = 1000.0
@@ -192,6 +194,8 @@ module Mdq
                      else
                        reality == 'physical'
                      end
+
+          next unless (physical && is_physical) || (!physical && is_simulated)
 
           Device.create({
                           udid: udid,

@@ -29,9 +29,17 @@ module Mdq
                             type: :boolean
     method_option :apple, desc: 'Show Apple devices', default: true,
                           type: :boolean
+    method_option :physical, desc: 'Show physical devices', default: true,
+                             type: :boolean
+    method_option :simulated, desc: 'Show simulated devices', default: true,
+                              type: :boolean
     def devices
       db = Mdq::DB.new
-      db.get(is_android: options[:android], is_apple: options[:apple], is_apps: false)
+      db.get(is_android: options[:android],
+             is_apple: options[:apple],
+             is_apps: false,
+             is_physical: options[:physical],
+             is_simulated: options[:simulated])
       puts(JSON.pretty_generate(Device.all.as_json))
     end
 

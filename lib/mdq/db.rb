@@ -10,11 +10,11 @@ module Mdq
   # DB
   class DB < Discovery
     # デバイスとアプリの取得
-    def get(is_android: true, is_apple: true, is_apps: true)
+    def get(is_android: true, is_apple: true, is_apps: true, is_physical: true, is_simulated: true)
       reset
       # デバイスの発見
-      android_discover if is_android
-      apple_discover if is_apple
+      android_discover(is_physical) if is_android
+      apple_discover(is_physical, is_simulated) if is_apple
 
       return unless is_apps
 
