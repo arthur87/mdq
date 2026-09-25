@@ -92,17 +92,16 @@ module Mdq
           mac_address = nil
           ip_address = nil
           ipv6_address = []
-          wifi_network = nil
 
           # バッテリー
-          lines1, = adb_command('shell dumpsys battery', udid)
-          if (match = lines1.match(/level: (\d*)/))
+          battery_lines, = adb_command('shell dumpsys battery', udid)
+          if (match = battery_lines.match(/level: (\d*)/))
             battery_level = match[1].to_i
           end
 
           # ストレージ
-          lines2, = adb_command('shell df', udid)
-          lines2.split("\n").each_with_index do |line, index|
+          df_lines, = adb_command('shell df', udid)
+          df_lines.split("\n").each_with_index do |line, index|
             next if index.zero?
 
             columns = line.split
@@ -114,8 +113,8 @@ module Mdq
           end
 
           # MACアドレスとIPアドレス
-          lines3, = adb_command('shell ip addr show wlan0', udid)
-          lines3.split("\n").each do |line|
+          ip_lines, = adb_command('shell ip addr show wlan0', udid)
+          ip_lines.split("\n").each do |line|
             match = line.match('link/ether (.*?) ')
             mac_address = match[1] unless match.nil?
 
@@ -127,13 +126,15 @@ module Mdq
           end
 
           # Wi-Fi
-          lines4, = adb_command("shell dumpsys netstats | grep -E 'iface=wlan0'", udid)
-          lines4.split("\n").each do |line|
-            match = line.match(' wifiNetworkKey="(.*?)"')
-            next if match[1].nil?
-
-            wifi_network = match[1]
-            break
+          wifi_network = nil
+          wifi_lines, = adb_command("shell dumpsys netstats | grep -E 'iface=wlan0'", udid)
+          wifi_lines.split("\n").each do |line|
+            if line.include?('wifiNetworkKey=') && (match = line.match(/(wifiNetworkKey="(.*?)")/))
+              wifi_network = match[2]
+            end
+            if line.include?('networkId=') && (match = line.match(/(networkId="(.*?)")/))
+              wifi_network = match[2]
+            end
           end
 
           Device.create({
