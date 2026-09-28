@@ -102,18 +102,18 @@ RSpec.describe Mdq::DB do # rubocop:disable Metrics/BlockLength
       "physical": true,
       "build_version": '16',
       "build_id": 'BP31.250502.008',
-      "battery_level": 88,
-      "total_disk": 118_015_217_664,
-      "used_disk": 19_287_748_608,
-      "available_disk": 98_727_469_056,
-      "capacity": 16,
-      "human_readable_total_disk": '109.91 GB',
-      "human_readable_used_disk": '17.96 GB',
-      "human_readable_available_disk": '91.95 GB',
-      "mac_address": 'ff:ff:ff:ff:ff:ff',
-      "ip_address": '192.168.1.1',
-      "ipv6_address": 'IPV6_1,IPV6_2,IPV6_3,IPV6_3',
-      "wifi_network": 'MyNet'
+      "battery_level": nil,
+      "total_disk": nil,
+      "used_disk": nil,
+      "available_disk": nil,
+      "capacity": nil,
+      "human_readable_total_disk": nil,
+      "human_readable_used_disk": nil,
+      "human_readable_available_disk": nil,
+      "mac_address": nil,
+      "ip_address": nil,
+      "ipv6_address": nil,
+      "wifi_network": nil
     }, {
       "id": 2,
       "udid": 'APPLE_UDID',
@@ -138,7 +138,6 @@ RSpec.describe Mdq::DB do # rubocop:disable Metrics/BlockLength
       "ip_address": nil,
       "ipv6_address": nil,
       "wifi_network": nil
-
     }].to_json
 
     expect(devices.to_json).to eq test_devices

@@ -62,4 +62,58 @@ RSpec.describe Mdq::Discovery do
       end
     end
   end
+
+  describe '#android_battery' do
+    it 'parses battery level from adb output' do
+      output = 'level: 88'
+
+      expect(discovery.send(:android_battery, output)).to eq 88
+    end
+  end
+
+  describe '#android_disk' do
+    it 'parses disk information from adb output' do
+      output = ['tmpfs               3814068        0   3814068   0% /tmp',
+                '/dev/block/dm-74  115249236 18704620  96413544  17% /data'].join("\n")
+      expect(discovery.send(:android_disk,
+                            output)).to eq [118_015_217_664.0, 19_287_748_608.0, 98_727_469_056.0, 16.34344196433545]
+    end
+  end
+
+  describe '#android_address' do
+    it 'parses MAC and IP addresses from adb output' do
+      output = ['47: wlan0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000',
+                'link/ether ff:ff:ff:ff:ff:ff brd ff:ff:ff:ff:ff:ff',
+                'inet 192.168.1.1/24 brd 192.168.1.255 scope global wlan0',
+                '   valid_lft forever preferred_lft forever',
+                'inet6 IPV6_1/64 scope global temporary dynamic',
+                '   valid_lft 86356sec preferred_lft 71618sec',
+                'inet6 IPV6_2/64 scope global temporary deprecated dynamic',
+                '   valid_lft 86356sec preferred_lft 0sec',
+                'inet6 IPV6_3/64 scope global dynamic mngtmpaddr',
+                '   valid_lft 86356sec preferred_lft 86356sec',
+                'inet6 IPV6_3/64 scope link',
+                '   valid_lft forever preferred_lft forever'].join("\n")
+
+      expect(discovery.send(:android_address,
+                            output)).to eq ['ff:ff:ff:ff:ff:ff', '192.168.1.1', 'IPV6_1,IPV6_2,IPV6_3,IPV6_3']
+    end
+  end
+
+  describe '#android_wifi_network' do
+    it 'parses Wi-Fi network from wifiNetworkKey' do
+      output = 'iface=wlan0 ident=[{type=1, ratType=COMBINED, wifiNetworkKey="MyNet"wpa2-psk, metered=false, defaultNetwork=true, oemManaged=OEM_NONE, subId=-1}'
+      expect(discovery.send(:android_wifi_network, output)).to eq 'MyNet'
+    end
+
+    it 'parses Wi-Fi network from wifiNetworkKey' do
+      output = 'iface=wlan0 ident=[{type=WIFI, subType=COMBINED, networkId="MyNet", metered=false, defaultNetwork=true}]'
+      expect(discovery.send(:android_wifi_network, output)).to eq 'MyNet'
+    end
+
+    it 'returns nil if no Wi-Fi network is found' do
+      output = 'iface=wlan0 ident=[{type=1, ratType=COMBINED, metered=false, defaultNetwork=true, oemManaged=OEM_NONE, subId=-1}]'
+      expect(discovery.send(:android_wifi_network, output)).to be_nil
+    end
+  end
 end

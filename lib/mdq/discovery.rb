@@ -64,7 +64,7 @@ module Mdq
     end
 
     # Androidデバイス一覧を取得する
-    def android_discover(is_physical = true) # rubocop:disable Metrics/AbcSize,Metrics/MethodLength,Metrics/CyclomaticComplexity,Metrics/PerceivedComplexity,Style/OptionalBooleanParameter
+    def android_discover(is_physical = true) # rubocop:disable Metrics/MethodLength,Style/OptionalBooleanParameter
       return if skip_device?(true, is_physical, false)
 
       output, = adb_command('devices -l')
@@ -72,7 +72,7 @@ module Mdq
 
       k = 1024.0
 
-      output.split("\n").each_with_index do |output_line, output_index| # rubocop:disable Metrics/BlockLength
+      output.split("\n").each_with_index do |output_line, output_index|
         next if output_index.zero?
 
         columns = output_line.split
@@ -85,57 +85,18 @@ module Mdq
           build_version, = adb_command('shell getprop ro.build.version.release', udid)
           build_id, = adb_command('shell getprop ro.build.id', udid)
           name, = adb_command('shell settings get global device_name', udid)
-          battery_level = nil
-          total_disk = nil
-          available_disk = nil
-          used_disk = nil
-          mac_address = nil
-          ip_address = nil
-          ipv6_address = []
 
           # バッテリー
-          battery_lines, = adb_command('shell dumpsys battery', udid)
-          if (match = battery_lines.match(/level: (\d*)/))
-            battery_level = match[1].to_i
-          end
+          battery_level = android_battery(adb_command('shell dumpsys battery', udid)[0])
 
           # ストレージ
-          df_lines, = adb_command('shell df', udid)
-          df_lines.split("\n").each_with_index do |line, index|
-            next if index.zero?
-
-            columns = line.split
-            next if columns[5].index('/data').nil?
-
-            total_disk = columns[1].to_f * k
-            available_disk = columns[3].to_f * k
-            used_disk = total_disk - available_disk
-          end
+          total_disk, used_disk, available_disk, capacity = android_disk(adb_command('shell df', udid)[0])
 
           # MACアドレスとIPアドレス
-          ip_lines, = adb_command('shell ip addr show wlan0', udid)
-          ip_lines.split("\n").each do |line|
-            match = line.match('link/ether (.*?) ')
-            mac_address = match[1] unless match.nil?
-
-            match = line.match('inet (.*?)/')
-            ip_address = match[1] unless match.nil?
-
-            match = line.match('inet6 (.*?)/')
-            ipv6_address << match[1] unless match.nil?
-          end
+          mac_address, ip_address, ipv6_address = android_address(adb_command('shell ip addr show wlan0', udid)[0])
 
           # Wi-Fi
-          wifi_network = nil
-          wifi_lines, = adb_command("shell dumpsys netstats | grep -E 'iface=wlan0'", udid)
-          wifi_lines.split("\n").each do |line|
-            if line.include?('wifiNetworkKey=') && (match = line.match(/(wifiNetworkKey="(.*?)")/))
-              wifi_network = match[2]
-            end
-            if line.include?('networkId=') && (match = line.match(/(networkId="(.*?)")/))
-              wifi_network = match[2]
-            end
-          end
+          wifi_network = android_wifi_network(adb_command("shell dumpsys netstats | grep -E 'iface=wlan0'", udid)[0])
 
           Device.create({
                           udid: udid,
@@ -149,14 +110,14 @@ module Mdq
                           total_disk: total_disk,
                           available_disk: available_disk,
                           used_disk: used_disk,
-                          capacity: (used_disk.to_f / total_disk) * 100,
+                          capacity: capacity,
                           human_readable_total_disk: number_to_human_size(total_disk, k),
                           human_readable_available_disk: number_to_human_size(available_disk, k),
                           human_readable_used_disk: number_to_human_size(used_disk, k),
                           platform: 'Android',
                           mac_address: mac_address,
                           ip_address: ip_address,
-                          ipv6_address: ipv6_address.join(','),
+                          ipv6_address: ipv6_address,
                           wifi_network: wifi_network,
                           physical: true
                         })
@@ -210,7 +171,8 @@ module Mdq
                           build_id: device['deviceProperties']['osBuildUpdate'],
                           total_disk: total_disk,
                           human_readable_total_disk: number_to_human_size(total_disk, k),
-                          physical: physical
+                          physical: physical,
+                          ipv6_address: nil
                         })
         end
 
@@ -281,6 +243,64 @@ module Mdq
     def skip_device?(physical, is_physical, is_simulated)
       !((physical && is_physical) || (!physical && is_simulated))
     end
+
+    # Androidのバッテリー
+    def android_battery(lines)
+      if (match = lines.match(/level: (\d*)/))
+        match[1].to_i
+      end
+    end
+
+    # Androidのストレージ
+    def android_disk(lines)
+      k = 1024.0
+      lines.split("\n").each_with_index do |line, index|
+        next if index.zero?
+
+        columns = line.split
+        next if columns[5].index('/data').nil?
+
+        total_disk = columns[1].to_f * k
+        available_disk = columns[3].to_f * k
+        used_disk = total_disk - available_disk
+        capacity = (used_disk.to_f / total_disk) * 100
+        return total_disk, used_disk, available_disk, capacity
+      end
+
+      [nil, nil, nil, nil]
+    end
+
+    def android_address(lines)
+      mac_address = nil
+      ip_address = nil
+      ipv6_address = []
+
+      lines.split("\n").each do |line|
+        match = line.match('link/ether (.*?) ')
+        mac_address = match[1] unless match.nil?
+
+        match = line.match('inet (.*?)/')
+        ip_address = match[1] unless match.nil?
+
+        match = line.match('inet6 (.*?)/')
+        ipv6_address << match[1] unless match.nil?
+      end
+
+      [mac_address, ip_address, ipv6_address.empty? ? nil : ipv6_address.join(',')]
+    end
+
+    def android_wifi_network(lines)
+      wifi_network = nil
+      lines.split("\n").each do |line|
+        if line.include?('wifiNetworkKey=') && (match = line.match(/(wifiNetworkKey="(.*?)")/))
+          wifi_network = match[2]
+        end
+        if line.include?('networkId=') && (match = line.match(/(networkId="(.*?)")/))
+          wifi_network = match[2]
+        end
+      end
+      wifi_network
+    end
   end
 end
 
@@ -293,28 +313,28 @@ ActiveRecord::Base.establish_connection(
 )
 
 ActiveRecord::Migration.create_table :devices do |t|
-  t.string :udid
-  t.string :serial_number
-  t.string :name
+  t.string :udid, default: nil
+  t.string :serial_number, default: nil
+  t.string :name, default: nil
   t.boolean :authorized
-  t.string :platform
-  t.string :marketing_name
-  t.string :model
+  t.string :platform, default: nil
+  t.string :marketing_name, default: nil
+  t.string :model, default: nil
   t.boolean :physical
-  t.string :build_version
-  t.string :build_id
+  t.string :build_version, default: nil
+  t.string :build_id, default: nil
   t.integer :battery_level
   t.integer :total_disk
   t.integer :used_disk
   t.integer :available_disk
   t.integer :capacity
-  t.string :human_readable_total_disk
-  t.string :human_readable_used_disk
-  t.string :human_readable_available_disk
-  t.string :mac_address
-  t.string :ip_address
+  t.string :human_readable_total_disk, default: nil
+  t.string :human_readable_used_disk, default: nil
+  t.string :human_readable_available_disk, default: nil
+  t.string :mac_address, default: nil
+  t.string :ip_address, default: nil
   t.text :ipv6_address
-  t.string :wifi_network
+  t.string :wifi_network, default: nil
 end
 
 ActiveRecord::Migration.create_table :apps do |t|
