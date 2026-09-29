@@ -1,0 +1,1 @@
+iface=wlan0 ident=[{type=WIFI, subType=COMBINED, networkId="MyNet", metered=false, defaultNetwork=true}]

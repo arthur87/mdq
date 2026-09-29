@@ -17,11 +17,7 @@ RSpec.describe Mdq::DB do # rubocop:disable Metrics/BlockLength
     allow(db).to receive(:sell).and_call_original
 
     # Android Devices
-    allow(db).to receive(:adb_command).with('devices -l').and_return(
-      ['List of devices attached',
-       'ANDROID_UDID         device 2-1 product:panther_beta model:Pixel_7 device:panther transport_id:10']
-         .join("\n")
-    )
+    allow(db).to receive(:adb_command).with('devices -l').and_return(File.read("#{__dir__}/android-devices.txt"))
 
     allow(db).to receive(:adb_command).with('shell getprop ro.product.model',
                                             'ANDROID_UDID').and_return('Pixel 7')
@@ -32,50 +28,25 @@ RSpec.describe Mdq::DB do # rubocop:disable Metrics/BlockLength
     allow(db).to receive(:adb_command).with('shell settings get global device_name',
                                             'ANDROID_UDID').and_return('Pixel 7')
     allow(db).to receive(:adb_command).with('shell dumpsys battery', 'ANDROID_UDID').and_return('level: 88')
-    allow(db).to receive(:adb_command).with('shell df', 'ANDROID_UDID').and_return(
-      ['tmpfs               3814068        0   3814068   0% /tmp',
-       '/dev/block/dm-74  115249236 18704620  96413544  17% /data'].join("\n")
-    )
+    allow(db).to receive(:adb_command).with('shell df',
+                                            'ANDROID_UDID').and_return(File.read("#{__dir__}/android-df.txt"))
 
-    allow(db).to receive(:adb_command).with('version').and_return(
-      ['Android Debug Bridge version 1.0.41',
-       'Version 35.0.1-11580240',
-       'Installed as /opt/homebrew/bin/adb',
-       'Running on Darwin 24.4.0 (arm64)'].join('\n')
-    )
+    allow(db).to receive(:adb_command).with('version').and_return(File.read("#{__dir__}/adb-version.txt"))
 
-    allow(db).to receive(:adb_command).with('shell pm list packages', 'ANDROID_UDID').and_return(
-      ['package:com.example.android1', 'package:com.example.android2'].join("\n")
-    )
+    allow(db).to receive(:adb_command).with('shell pm list packages',
+                                            'ANDROID_UDID').and_return(File.read("#{__dir__}/android-packages.txt"))
 
-    allow(db).to receive(:adb_command).with('shell ip addr show wlan0', 'ANDROID_UDID').and_return(
-      ['47: wlan0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000',
-       'link/ether ff:ff:ff:ff:ff:ff brd ff:ff:ff:ff:ff:ff',
-       'inet 192.168.1.1/24 brd 192.168.1.255 scope global wlan0',
-       '   valid_lft forever preferred_lft forever',
-       'inet6 IPV6_1/64 scope global temporary dynamic',
-       '   valid_lft 86356sec preferred_lft 71618sec',
-       'inet6 IPV6_2/64 scope global temporary deprecated dynamic',
-       '   valid_lft 86356sec preferred_lft 0sec',
-       'inet6 IPV6_3/64 scope global dynamic mngtmpaddr',
-       '   valid_lft 86356sec preferred_lft 86356sec',
-       'inet6 IPV6_3/64 scope link',
-       '   valid_lft forever preferred_lft forever'].join("\n")
-    )
+    allow(db).to receive(:adb_command).with('shell ip addr show wlan0',
+                                            'ANDROID_UDID').and_return(File.read("#{__dir__}/android-ip.txt"))
 
     allow(db).to receive(:adb_command).with("shell dumpsys netstats | grep -E 'iface=wlan0'",
-                                            'ANDROID_UDID').and_return(
-                                              ['iface=wlan0 ident=[{type=1, ratType=COMBINED, wifiNetworkKey="MyNet"wpa2-psk, metered=false, defaultNetwork=true, oemManaged=OEM_NONE, subId=-1}]', # rubocop:disable Layout/LineLength
-                                               'iface=wlan0 ident=[{type=1, ratType=COMBINED, wifiNetworkKey="MyNet"wpa2-psk, metered=false, defaultNetwork=true, oemManaged=OEM_NONE, subId=-1}]'] # rubocop:disable Layout/LineLength
-                                                                                        .join("\n")
-                                            )
+                                            'ANDROID_UDID').and_return(File.read("#{__dir__}/android-wifi-network-key.txt"))
 
     # Apple Devices
     allow(db).to receive(:apple_command).with("list devices -v -j #{file}").and_return(nil)
     allow(db).to receive(:apple_command).with('--version').and_return(443.19)
-    allow(db).to receive(:apple_command).with("device info apps -j #{apps_file}", 'APPLE_UDID').and_return(
-      nil
-    )
+    allow(db).to receive(:apple_command).with("device info apps -j #{apps_file}",
+                                              'APPLE_UDID').and_return(nil)
   end
 
   it 'check' do

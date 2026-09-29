@@ -1,0 +1,12 @@
+47: wlan0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
+link/ether ff:ff:ff:ff:ff:ff brd ff:ff:ff:ff:ff:ff
+inet 192.168.1.1/24 brd 192.168.1.255 scope global wlan0
+  valid_lft forever preferred_lft forever
+inet6 IPV6_1/64 scope global temporary dynamic
+  valid_lft 86356sec preferred_lft 71618sec
+inet6 IPV6_2/64 scope global temporary deprecated dynamic
+  valid_lft 86356sec preferred_lft 0sec
+inet6 IPV6_3/64 scope global dynamic mngtmpaddr
+  valid_lft 86356sec preferred_lft 86356sec
+inet6 IPV6_3/64 scope link
+  valid_lft forever preferred_lft forever

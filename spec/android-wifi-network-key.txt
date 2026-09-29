@@ -1,0 +1,2 @@
+iface=wlan0 ident=[{type=1, ratType=COMBINED, wifiNetworkKey="MyNet"wpa2-psk, metered=false, defaultNetwork=true, oemManaged=OEM_NONE, subId=-1}]
+iface=wlan0 ident=[{type=1, ratType=COMBINED, wifiNetworkKey="MyNet"wpa2-psk, metered=false, defaultNetwork=true, oemManaged=OEM_NONE, subId=-1}]

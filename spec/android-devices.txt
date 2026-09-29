@@ -1,0 +1,2 @@
+List of devices attached
+ANDROID_UDID         device 2-1 product:panther_beta model:Pixel_7 device:panther transport_id:10
